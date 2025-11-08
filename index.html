@@ -1,0 +1,4365 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <title>Konecta Adherence Portal (KAP)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Using Inter, a calm and highly legible font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart', 'table']});
+      google.charts.setOnLoadCallback(() => { chartsLoaded = true; }); 
+    </script>
+    
+    <style>
+      /* --- Color Palette & Variables --- */
+      :root {
+        /* Konecta Branding */
+        --konecta-blue: #00a9e0;
+        --konecta-dark: #2101cd; 
+        --konecta-yellow: #f0fa00; 
+
+        /* Core UI - LIGHT MODE */
+        --text-color: #212121; 
+        --text-color-secondary: #5f6368;
+        --page-bg: #f4f7f6;
+        --card-bg: #ffffff;
+        --border-color: #e0e0e0;
+        --input-bg: #f8f9fa;
+        --shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        --radius: 12px;
+
+        /* Role Colors (User-Defined) */
+        --role-user-bg: #f4f7f6; 
+        --role-admin-bg: #2101cd;
+        --role-superadmin-bg: #2101cd;
+        
+        /* Status Colors (Unified) */
+        --status-pending: #feefc3; 
+        --status-pending-text: #744210;
+        --status-login: #edfbf3; 
+        --status-login-text: #2a6944;
+        --status-break: #e6f4ff; 
+        --status-break-text: #174b85;
+        --status-leave: #fdebee; 
+        --status-leave-text: #c53030;
+      }
+
+      /* DARK MODE OVERRIDES */
+      body.dark-mode {
+        --text-color: #f4f7f6;
+        --text-color-secondary: #b0b0b0;
+        --page-bg: #1e1e1e;
+        --card-bg: #2d2d2d;
+        --border-color: #444444;
+        --input-bg: #3c3c3c;
+        --shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+        
+        /* Adjusting role backgrounds for dark mode visibility */
+        --role-user-bg: #252525; 
+        --role-admin-bg: #a1a600;
+        --role-superadmin-bg: #0d015c;
+        
+        /* Status Colors (Dark Mode) */
+        --status-pending: #4b2a0c; 
+        --status-pending-text: #f9da8a;
+        --status-login: #1a4f2b; 
+        --status-login-text: #b8e9c9;
+        --status-break: #103a5c; 
+        --status-break-text: #96c4e0;
+        --status-leave: #7b1d1d; 
+        --status-leave-text: #fbb2b2;
+      }
+      
+      /* --- Global Transitions and Font --- */
+      * {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        /* NEW: Custom Scrollbar for modern browsers */
+        scrollbar-color: var(--konecta-dark) var(--page-bg); 
+        scrollbar-width: thin; 
+      }
+      /* NEW: Webkit Scrollbar Styling (Chrome/Safari) */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--page-bg);
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--konecta-dark);
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--konecta-blue);
+      }
+      
+      body, html {
+        font-family: 'Inter', Arial, sans-serif;
+        margin: 0; 
+        padding: 0;
+        background-color: var(--page-bg);
+        color: var(--text-color);
+        min-height: 100vh;
+        
+        /* NEW: Subtle Konecta Branding Background (Dots) */
+        background-image: 
+          radial-gradient(var(--border-color) 1px, transparent 1px),
+          radial-gradient(var(--border-color) 1px, transparent 1px);
+        background-size: 20px 20px;
+        background-position: 0 0, 10px 10px;
+      }
+      
+      /* Dark Mode Pattern Adjustment */
+      body.dark-mode {
+          /* Inherits dark mode vars */
+          
+          /* Adjusting pattern visibility for dark mode */
+          background-image: 
+            radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+            radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      }
+      
+      body {
+        display: flex;
+        flex-direction: column;
+      }
+      
+      h1, h2, h3, h4, strong {
+        color: var(--text-color);
+      }
+      
+      /* --- Role-Based Body Background (The Revolution!) --- */
+      body[data-role="agent"] main, body[data-role="agent"] header {
+          background-color: var(--card-bg);
+      }
+
+      body[data-role="admin"] header {
+        background-color: var(--role-admin-bg);
+        border-color: var(--role-admin-bg);
+      }
+      body[data-role="admin"] header h1, body[data-role="admin"] header .header-kap {
+        color: black;
+      }
+      body[data-role="admin"] main {
+        border: 2px solid var(--role-admin-bg);
+      }
+      body[data-role="admin"] #admin-panel {
+        background-color: var(--role-admin-bg);
+        border-color: var(--role-admin-bg);
+        color: black;
+        box-shadow: 0 4px 10px rgba(var(--role-admin-bg), 0.3);
+      }
+      
+      body[data-role="superadmin"] header {
+        background-color: var(--role-superadmin-bg);
+        border-color: var(--role-superadmin-bg);
+      }
+      body[data-role="superadmin"] header h1, body[data-role="superadmin"] header .header-kap {
+        color: white;
+      }
+      body[data-role="superadmin"] main {
+        border: 2px solid var(--role-superadmin-bg);
+      }
+      body[data-role="superadmin"] #admin-panel {
+        background-color: var(--role-superadmin-bg);
+        border-color: var(--role-superadmin-bg);
+        color: white;
+        box-shadow: 0 4px 10px rgba(var(--role-superadmin-bg), 0.3);
+      }
+
+      /* --- Header with Logo and Dark Mode Button --- */
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 15px 30px;
+        background-color: var(--card-bg);
+        border-bottom: 2px solid var(--border-color);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      .header-controls {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+      header img {
+        height: 30px;
+        width: auto;
+      }
+      header h1 { 
+        color: var(--text-color);
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin: 0;
+        display: flex;
+        align-items: center;
+      }
+      
+      .header-kap {
+        color: var(--konecta-blue);
+        font-weight: 700;
+        margin-left: 5px;
+      }
+      
+      /* --- Refresh Button (Kept) --- */
+      #header-refresh-button {
+        background: var(--input-bg);
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+      #header-refresh-button:hover {
+        opacity: 0.9;
+        transform: scale(1.05);
+        background-color: var(--page-bg);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+      #header-refresh-button img {
+        width: 18px;
+        height: 18px;
+        /* The filter is handled by JS on theme change */
+      }
+      #header-refresh-button.loading img {
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      /* --- Dark Mode Toggle Switch (NEW STYLES) --- */
+      .dark-mode-toggle-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        height: 34px;
+        margin-right: 5px;
+      }
+
+      #dark-mode-toggle {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .switch-label {
+        position: relative;
+        display: block;
+        width: 60px;
+        height: 34px;
+        border-radius: 17px;
+        background-color: var(--input-bg);
+        border: 1px solid var(--border-color);
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      .switch-label:before {
+        content: '';
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background-color: var(--konecta-blue);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease;
+      }
+
+      /* Icons inside the toggle */
+      .sun-icon, .moon-icon {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 16px;
+        transition: opacity 0.3s ease;
+      }
+
+      .sun-icon {
+        left: 8px;
+        opacity: 1;
+      }
+
+      .moon-icon {
+        right: 8px;
+        opacity: 0;
+      }
+
+      /* Checked state (Dark Mode) */
+      #dark-mode-toggle:checked + .switch-label:before {
+        transform: translateX(26px);
+        background-color: var(--konecta-dark);
+      }
+
+      #dark-mode-toggle:checked + .switch-label .sun-icon {
+        opacity: 0;
+      }
+
+      #dark-mode-toggle:checked + .switch-label .moon-icon {
+        opacity: 1;
+      }
+      /* --- END Dark Mode Toggle Switch --- */
+
+      /* --- Centered Card Layout --- */
+      main {
+        max-width: 1600px;
+        margin: 30px auto 0 auto; 
+        background-color: var(--card-bg);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        flex-grow: 1;
+        transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1); /* Slower, smoother shadow transition */
+      }
+      
+      /* --- Tab Navigation --- */
+      #tab-nav {
+        border-bottom: 1px solid var(--border-color);
+        padding-top: 10px;
+        display: flex;
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding-left: 30px;
+        background-color: var(--card-bg);
+      }
+      .tab-button {
+        padding: 14px 20px;
+        font-size: 15px;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        background-color: transparent;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s ease;
+        color: var(--text-color-secondary);
+        white-space: nowrap;
+      }
+      .tab-button:hover {
+        background-color: var(--input-bg);
+        color: var(--konecta-blue);
+      }
+      .tab-button.active {
+        color: var(--konecta-blue);
+        border-bottom: 3px solid var(--konecta-blue);
+        background-color: var(--input-bg);
+      }
+      #schedule-tab-button, #leave-approval-tab-button, #history-report-tab-button, #dashboard-tab-button, #my-schedule-tab-button, #reporting-line-tab-button, #admin-tools-tab-button {
+        display: none;
+      }
+      
+      /* --- Content Container --- */
+      .content-container {
+        padding: 30px;
+      }
+      
+      .tab-panel {
+        display: none;
+      }
+      #punch-panel {
+        display: block;
+      }
+      
+      /* --- Info and Admin Panels --- */
+      #agent-info { 
+        margin-bottom: 20px; 
+        padding: 15px;
+        background-color: var(--input-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        text-align: center;
+        font-size: 1.1em;
+        position: relative; 
+        transition: all 0.3s ease;
+      }
+      
+      #admin-panel {
+        display: none;
+        background-color: var(--input-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        padding: 15px;
+        margin-bottom: 20px;
+        text-align: center;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+      #admin-panel label {
+        font-weight: 600;
+        margin-right: 10px;
+        color: var(--text-color);
+      }
+      #agent-select {
+        font-size: 1em;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background-color: var(--card-bg);
+        color: var(--text-color);
+      }
+
+      /* --- Punch Button Group --- */
+      #buttons, #other-buttons {
+        padding: 0;
+        background-color: transparent;
+        border-radius: 0;
+        box-shadow: none;
+        text-align: center;
+      }
+      #buttons, #other-buttons {
+         display: none;
+      }
+      
+      #other-buttons {
+        margin-top: 20px;
+      }
+
+      button {
+        margin: 10px;
+        padding: 14px 25px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        border-radius: 10px;
+        background-color: var(--konecta-blue);
+        color: white;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 10px rgba(0, 169, 224, 0.3);
+        transition: all 0.2s ease-out; 
+        min-width: 160px;
+      }
+      button:hover {
+        background-color: #008fbc;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(0, 169, 224, 0.4);
+      }
+      
+      #other-buttons button {
+        background-color: var(--text-color-secondary);
+        box-shadow: 0 4px 10px rgba(95, 99, 104, 0.2);
+      }
+       #other-buttons button:hover {
+        background-color: #3c4043;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(95, 99, 104, 0.3);
+      }
+      
+      .button-group {
+        margin-bottom: 15px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 15px;
+      }
+      .button-group:last-of-type {
+        border-bottom: none;
+        padding-bottom: 0;
+        margin-bottom: 0;
+      }
+      
+      /* --- Alert/Status Styles --- */
+      .status-message {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 8px;
+        min-height: 30px;
+        font-size: 1em;
+        font-weight: 500;
+        text-align: center;
+        visibility: hidden;
+        border: 1px solid transparent;
+        opacity: 0;
+        transition: opacity 0.4s ease, visibility 0.4s ease, transform 0.3s ease;
+        transform: translateY(10px);
+      }
+      .status-message.visible {
+        visibility: visible;
+        opacity: 1;
+        transform: translateY(0);
+      }
+      
+      /* Base Style for all status containers */
+      #status, #schedule-status, #leave-status, #approval-status, #my-history-status, #manual-punch-status, #admin-leave-status, #csv-import-status, #balance-adjust-status, #my-schedule-status, #dashboard-status, #reporting-line-status {
+          /* Inherits status-message styles */
+      }
+      /* NEW: Added coaching statuses */
+      #coaching-submit-status, #coaching-list-status {
+          /* Inherits status-message styles */
+      }
+
+
+      /* Success */
+      .status-message.success { 
+        background-color: #edfbf3; 
+        color: #2a6944; 
+        border-color: #b8e9c9;
+      }
+      body.dark-mode .status-message.success { 
+        background-color: #1a4f2b; 
+        color: #b8e9c9;
+        border-color: #2a6944;
+      }
+
+      /* Error */
+      .status-message.error { 
+        background-color: #fdebee; 
+        color: #c53030; 
+        border-color: #fbb2b2;
+      }
+      body.dark-mode .status-message.error { 
+        background-color: #7b1d1d; 
+        color: #fbb2b2;
+        border-color: #c53030;
+      }
+      
+      /* Processing/Warning */
+      .status-message.processing { 
+        background-color: #feefc3; 
+        color: #744210; 
+        border-color: #f9da8a;
+      }
+      body.dark-mode .status-message.processing { 
+        background-color: #4b2a0c; 
+        color: #f9da8a;
+        border-color: #744210;
+      }
+      
+      /* --- Form Styles (reusable) --- */
+      .form-group {
+        margin-bottom: 20px;
+      }
+      .form-group label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 8px;
+        color: var(--text-color-secondary);
+      }
+      .form-group select, .form-group input, .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        font-size: 1em;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        box-sizing: border-box;
+        background-color: var(--input-bg);
+        color: var(--text-color);
+        font-family: 'Inter', Arial, sans-serif;
+      }
+      .form-group input[type="date"], .form-group input[type="time"] {
+        /* Fixes date/time text alignment in some browsers in dark mode */
+        color-scheme: var(--dark-mode-scheme, light); 
+      }
+      body.dark-mode {
+        --dark-mode-scheme: dark;
+      }
+      .form-row {
+        display: flex;
+        gap: 15px;
+      }
+      .form-row .form-group {
+        flex: 1;
+      }
+      
+      .form-group small {
+        display: block;
+        margin-top: 6px;
+        font-size: 0.85rem;
+        color: var(--text-color-secondary);
+      }
+      
+      .form-container .submit-btn-green {
+        background-color: #34a853;
+        box-shadow: 0 4px 10px rgba(52, 168, 83, 0.3);
+      }
+      .form-container .submit-btn-green:hover {
+        background-color: #2c8c45;
+        box-shadow: 0 6px 15px rgba(52, 168, 83, 0.4);
+      }
+      
+      /* --- Leave Balance Display --- */
+      #leave-balances {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 25px;
+        background-color: var(--input-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        padding: 20px;
+      }
+      .balance-item {
+        flex: 1;
+        text-align: center;
+      }
+      .balance-item p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--text-color-secondary);
+        font-weight: 500;
+      }
+      .balance-item .balance-days {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--konecta-blue);
+        display: block;
+        margin-top: 5px;
+      }
+      
+      /* --- Leave List Styles (Reused for Dashboard Tables) --- */
+      .request-list {
+        margin-top: 30px;
+        padding-top: 20px;
+      }
+      .request-list-item {
+        background-color: var(--input-bg);
+        border: 1px solid var(--border-color);
+        border-left: 5px solid var(--konecta-blue);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        transition: all 0.3s ease;
+      }
+      .request-list-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      }
+      
+      .request-list-item .item-details {
+        flex: 1;
+      }
+      .request-list-item .item-details h4 {
+        margin: 0 0 10px 0;
+        color: var(--text-color);
+        font-size: 1.1em;
+      }
+      .request-list-item .item-details p {
+        margin: 4px 0;
+        font-size: 0.95rem;
+        color: var(--text-color-secondary);
+      }
+      .request-list-item .item-actions {
+        min-width: 150px;
+        text-align: right;
+      }
+      
+      /* Status Badges */
+      .status-badge {
+        display: inline-block;
+        padding: 6px 14px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border-radius: 20px;
+        margin-top: 5px;
+        text-transform: uppercase;
+      }
+      .status-pending { background-color: var(--status-pending); color: var(--status-pending-text); }
+      .status-approved { background-color: var(--status-login); color: var(--status-login-text); }
+      .status-denied { background-color: var(--status-leave); color: var(--status-leave-text); }
+
+      /* NEW: Dashboard Agent Status Styles */
+      .status-Logged-In { background-color: var(--status-login); color: var(--status-login-text); }
+      .status-On-Break-Other { background-color: var(--status-break); color: var(--status-break-text); }
+      .status-On-Leave { background-color: var(--status-leave); color: var(--status-leave-text); }
+      .status-Absent { background-color: var(--status-leave); color: var(--status-leave-text); }
+      .status-Pending-Login { background-color: var(--status-pending); color: var(--status-pending-text); }
+      .status-Logged-Out { background-color: var(--status-leave); color: var(--status-leave-text); }
+      
+      .item-actions .approve-btn,
+      .item-actions .deny-btn {
+        min-width: 100px;
+        padding: 8px 12px;
+        font-size: 14px;
+        margin: 4px;
+        font-weight: 500;
+        box-shadow: none;
+        transform: none;
+      }
+      .approve-btn { background-color: #34a853; }
+      .approve-btn:hover { background-color: #2c8c45; }
+      .deny-btn { background-color: #ea4335; }
+      .deny-btn:hover { background-color: #b92c2c; }
+      
+      /* --- Filter Buttons --- */
+      #approval-filter-nav {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .filter-button {
+        flex: 1;
+        padding: 10px 15px;
+        font-size: 14px;
+        font-weight: 500;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background-color: var(--input-bg);
+        color: var(--text-color-secondary);
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .filter-button:hover {
+        background-color: var(--page-bg);
+      }
+      .filter-button.active {
+        background-color: var(--konecta-blue);
+        color: white;
+        border-color: var(--konecta-blue);
+      }
+      
+      /* --- History Report & Dashboard Form Layouts --- */
+      #history-report-form {
+        display: flex;
+        flex-wrap: wrap; 
+        gap: 15px;
+        align-items: flex-end;
+        background-color: var(--input-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        padding: 20px;
+      }
+      #history-report-form .form-group {
+        flex: 1;
+        min-width: 150px; 
+        margin-bottom: 0;
+      }
+      
+      #history-report-form button {
+        width: auto;
+        min-width: 150px;
+        margin: 0 0 0 10px;
+        box-shadow: none;
+        transform: none;
+      }
+      #history-report-form .view-btn {
+        background-color: var(--konecta-dark);
+      }
+      #history-report-form .view-btn:hover {
+        background-color: #1a0199;
+        transform: translateY(-1px);
+      }
+      #history-report-form .export-btn {
+        background-color: var(--text-color-secondary);
+        display: none;
+      }
+      #history-report-form .export-btn:hover {
+        background-color: #3c4043;
+      }
+      
+      /* Dashboard Form Layout (MODIFIED) */
+      #dashboard-form {
+        display: flex;
+        flex-wrap: wrap; 
+        gap: 15px;
+        align-items: flex-end;
+        background-color: var(--input-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        padding: 20px;
+      }
+      #dashboard-form .form-group {
+        flex: 1;
+        min-width: 150px; 
+        margin-bottom: 0;
+      }
+      #dashboard-filters {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        min-width: 180px;
+      }
+      #dashboard-filters button {
+        width: 100%;
+        margin: 0;
+      }
+      #dashboard-filters .load-btn { background-color: var(--konecta-dark); }
+      #dashboard-filters .load-btn:hover { background-color: #1a0199; }
+      #dashboard-filters .team-btn { background-color: #34a853; }
+      #dashboard-filters .team-btn:hover { background-color: #2c8c45; }
+      #dashboard-filters .save-btn { background-color: var(--konecta-blue); }
+      #dashboard-filters .save-btn:hover { background-color: #008fbc; }
+      
+      /* --- Report Tables --- */
+      #history-report-display, #my-schedule-display {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border-color);
+        overflow-x: auto; 
+      }
+      .report-table, .schedule-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+      }
+      .report-table th, .report-table td, .schedule-table th, .schedule-table td {
+        border: 1px solid var(--border-color);
+        padding: 12px;
+        text-align: left;
+        color: var(--text-color);
+      }
+      .report-table th, .schedule-table th {
+        background-color: var(--input-bg);
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        color: var(--text-color-secondary);
+      }
+      
+      .schedule-table .day-today {
+        font-weight: 700;
+        background-color: var(--konecta-yellow);
+        color: black;
+      }
+      body.dark-mode .schedule-table .day-today {
+        background-color: var(--role-admin-bg);
+        color: white;
+      }
+      
+      /* --- Dashboard Grid Restructure (MODIFIED) --- */
+      #dashboard-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
+          gap: 20px;
+      }
+      .dashboard-card {
+        background-color: var(--input-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        padding: 20px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      }
+      /* Ensure full width items span across all columns in the flexible grid */
+      .dashboard-card.full-width {
+        grid-column: 1 / -1;
+      }
+      .dashboard-card h3 {
+        margin: 0 0 15px 0;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--konecta-blue);
+        font-size: 1.2rem;
+      }
+      .chart-container, .table-container {
+        width: 100%;
+        min-height: 350px;
+        overflow-y: auto;
+      }
+
+      /* --- Section divider --- */
+      .section-divider {
+        border: 0;
+        border-top: 1px solid var(--border-color);
+        margin: 30px 0;
+      }
+      
+      /* --- FOOTER STYLES (NEW/MODIFIED) --- */
+      footer {
+        padding: 15px 30px;
+        margin-top: auto;
+        text-align: center;
+        width: 100%;
+        background-color: var(--card-bg); 
+        border-top: 1px solid var(--border-color); 
+        box-sizing: border-box;
+        color: var(--text-color-secondary); 
+      }
+      
+      footer p {
+        margin: 0;
+        font-size: 0.9rem;
+      }
+
+      /* --- Dashboard Table Styling --- */
+      
+      /* Style container to look like approval list */
+      .dashboard-list-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        padding-top: 10px; 
+      }
+      
+      /* Style item cards for Dashboard Details */
+      .dashboard-detail-item {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-left: 5px solid var(--konecta-blue);
+        border-radius: 8px;
+        padding: 15px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px 5px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+      }
+      .dashboard-detail-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .dashboard-detail-item .detail-label {
+        font-weight: 500;
+        color: var(--text-color-secondary);
+        white-space: nowrap;
+      }
+
+      .dashboard-detail-item .detail-value {
+        font-weight: 600;
+        color: var(--text-color);
+        grid-column: span 2;
+        text-align: right;
+      }
+      
+      /* Specific styling for the Pending Leave Table - matches approval list */
+      .dashboard-leave-item {
+        background-color: var(--input-bg);
+        border: 1px solid var(--border-color);
+        border-left: 5px solid #34a853;
+        border-radius: 8px;
+        padding: 15px;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 15px;
+        transition: all 0.3s ease;
+      }
+      .dashboard-leave-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .dashboard-leave-item .item-details {
+        flex: 1;
+      }
+      .dashboard-leave-item .item-details h4 {
+        margin: 0 0 5px 0;
+        color: var(--text-color);
+        font-size: 1em;
+      }
+      .dashboard-leave-item .item-details p {
+        margin: 2px 0;
+        font-size: 0.9rem;
+        color: var(--text-color-secondary);
+      }
+      
+      /* NEW: Agent Status List Item */
+      .agent-status-item {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.2s ease-in-out;
+      }
+      .agent-status-item:hover {
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      }
+      .agent-status-item strong {
+        font-size: 1rem;
+        font-weight: 600;
+      }
+      .status-tag {
+        padding: 5px 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        white-space: nowrap;
+        border-radius: 9999px; /* Pill shape */
+      }
+
+      /* --- NEW: Custom Multi-Select Styles (History only) --- */
+      /* Apply to both dashboard and history containers */
+      #dashboard-user-select-container, #history-user-select-container {
+        position: relative; 
+      }
+
+      .custom-select-button {
+        width: 100%;
+        padding: 12px;
+        font-size: 1em;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background-color: var(--input-bg);
+        color: var(--text-color);
+        text-align: left;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.2s ease;
+        min-width: 150px;
+        margin: 0; 
+        box-shadow: none; 
+        transform: none; 
+      }
+      .custom-select-button:hover {
+        background-color: var(--page-bg);
+        border-color: var(--konecta-blue);
+      }
+
+      .custom-select-button::after {
+        content: '▼';
+        font-size: 0.7em;
+        transition: transform 0.2s;
+        color: var(--text-color-secondary);
+      }
+
+      .custom-select-button.active::after {
+        transform: rotate(180deg);
+      }
+
+      .custom-select-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        max-height: 250px;
+        overflow-y: auto;
+        z-index: 50;
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        display: none;
+        margin-top: 5px;
+        padding: 5px 0;
+        color: var(--text-color);
+      }
+      
+      /* Make sure checkboxes/labels look good in dark mode */
+      .custom-select-dropdown input[type="checkbox"] {
+          margin-right: 10px;
+          cursor: pointer;
+          accent-color: var(--konecta-blue);
+          min-width: 18px;
+          min-height: 18px;
+      }
+      .custom-select-dropdown label {
+          color: var(--text-color);
+          margin-bottom: 0;
+      }
+
+      .dropdown-item {
+        padding: 8px 15px;
+        cursor: pointer;
+        color: var(--text-color);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .dropdown-item:hover {
+        background-color: var(--input-bg);
+      }
+
+      .dropdown-item.selected {
+        background-color: var(--konecta-blue);
+        color: white;
+        font-weight: 600;
+      }
+
+      .dropdown-item.selected:hover {
+        background-color: #008fbc;
+      }
+      .dropdown-item.selected label {
+        color: white;
+      }
+      /* --- END Custom Multi-Select Styles --- */
+
+      /* --- NEW: Hierarchy Tree View Styles --- */
+      #dashboard-hierarchy-container {
+          flex: 2;
+          min-width: 300px;
+      }
+      #hierarchy-tree-view {
+          padding: 10px;
+          max-height: 300px;
+          overflow-y: auto;
+          border: 1px solid var(--border-color);
+          border-radius: 8px;
+          background-color: var(--card-bg);
+      }
+
+      .tree-node {
+          padding: 8px 5px;
+          cursor: pointer;
+          user-select: none;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 0.95rem;
+          position: relative;
+          border-left: 3px solid transparent;
+          transition: all 0.2s ease;
+      }
+      .tree-node:hover {
+          background-color: var(--input-bg);
+          border-left-color: var(--konecta-blue);
+          border-radius: 4px;
+      }
+      .tree-node.selected {
+          background-color: var(--konecta-dark);
+          color: white;
+          font-weight: 600;
+          border-left-color: var(--konecta-yellow);
+      }
+      .tree-node.selected span, .tree-node.selected img {
+          filter: invert(1); 
+      }
+      .tree-node.selected .tree-label {
+          color: white !important;
+      }
+      .tree-label {
+          flex-grow: 1;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+      }
+
+      .toggle-icon {
+          width: 14px;
+          height: 14px;
+          transition: transform 0.2s;
+          flex-shrink: 0;
+          opacity: 0.7;
+      }
+      .collapsed .toggle-icon {
+          transform: rotate(-90deg);
+      }
+      /* Hide toggle icon for nodes with no children */
+      .tree-node[data-has-children="false"] .toggle-icon {
+          visibility: hidden;
+      }
+
+      .subordinates-list {
+          margin-left: 15px;
+          padding-left: 5px;
+          border-left: 1px solid var(--border-color);
+          display: none;
+      }
+      
+      /* --- NEW: Role Circles/Icons --- */
+      .role-icon {
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          flex-shrink: 0;
+          border: 1px solid transparent;
+      }
+      .role-icon.agent {
+          background-color: var(--konecta-blue);
+      }
+      .role-icon.admin {
+          background-color: var(--konecta-yellow);
+          border-color: black;
+      }
+      .role-icon.superadmin {
+          background-color: var(--konecta-dark);
+      }
+      /* End NEW Role Circles/Icons */
+      /* --- END Hierarchy Tree View Styles --- */
+
+      /* --- NEW: Coaching QA Form Styles --- */
+      .qa-category {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: var(--page-bg); /* Use page-bg for nested forms */
+        border-radius: var(--radius);
+        border: 1px solid var(--border-color);
+      }
+      body.dark-mode .qa-category {
+         background-color: var(--page-bg);
+      }
+      .qa-category h4 {
+        margin: 0 0 15px 0;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--konecta-blue);
+      }
+      .qa-criterion {
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid var(--border-color);
+      }
+      .qa-criterion:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+      }
+      .qa-criterion p {
+        margin: 0 0 8px 0;
+        font-weight: 500;
+        color: var(--text-color);
+      }
+      .qa-criterion-inputs {
+        display: flex;
+        gap: 15px;
+      }
+      .qa-criterion-inputs select {
+        flex: 1;
+        background-color: var(--card-bg); /* Use card-bg for inputs inside */
+      }
+      .qa-criterion-inputs textarea {
+        flex: 2;
+        height: 60px;
+        min-height: 60px;
+        background-color: var(--card-bg); /* Use card-bg for inputs inside */
+      }
+      #coaching-overall-score {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--konecta-dark);
+        margin-top: 10px;
+      }
+      body.dark-mode #coaching-overall-score {
+        color: var(--konecta-yellow);
+      }
+      
+      /* NEW: Coaching list header style */
+      .coaching-list-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: -20px; /* Pulls list up */
+      }
+      .coaching-list-header h2 {
+         margin: 0;
+      }
+      /* Style for export button */
+      .coaching-list-header .export-btn {
+        background-color: var(--text-color-secondary);
+        display: none; /* Hidden by default */
+        margin: 0; /* Reset button margin */
+        padding: 10px 20px; /* Smaller padding */
+        font-size: 14px;
+      }
+      .coaching-list-header .export-btn:hover {
+        background-color: #3c4043;
+      }
+
+      /* --- Responsive Design --- */
+      @media (max-width: 900px) {
+        /* Dashboard grid defaults to 1 column due to minmax(350px) but we explicitly set it for clarity */
+        #dashboard-grid {
+          grid-template-columns: 1fr;
+        }
+        .dashboard-card.full-width {
+          grid-column: auto;
+        }
+        .form-row, #history-report-form, #dashboard-form {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        #history-report-form button, #dashboard-filters button {
+          margin: 10px 0 0 0;
+        }
+        #history-report-form .form-group, #dashboard-form .form-group {
+          min-width: 100%;
+        }
+        main {
+          margin: 15px;
+        }
+        header {
+          padding: 15px 20px;
+        }
+        .content-container {
+          padding: 20px;
+        }
+        #tab-nav {
+          padding-left: 20px;
+        }
+        .request-list-item {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .request-list-item .item-actions {
+            text-align: left;
+            margin-top: 10px;
+        }
+        
+        .dashboard-detail-item {
+           /* On small screens, stack details better */
+           grid-template-columns: 1fr 1fr;
+        }
+        .dashboard-detail-item .detail-value {
+           grid-column: span 1;
+           text-align: left;
+        }
+        
+        #dashboard-hierarchy-container {
+             flex: none;
+        }
+        /* NEW: Responsive QA Form */
+        .qa-criterion-inputs {
+          flex-direction: column;
+        }
+        /* NEW: Responsive coaching header */
+        .coaching-list-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 15px;
+          margin-bottom: 0;
+        }
+        .coaching-list-header .export-btn {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <img src="https://th.bing.com/th/id/OIP.gafgWpiLoUVHSxGah643xQHaCa?w=338&h=114&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3" alt="Konecta Logo">
+      <div class="header-controls">
+        <h1>
+          KAP
+        </h1>
+        
+        <!-- MODIFIED: Dark Mode Toggle Switch (replacing the old button/icon) -->
+        <div class="dark-mode-toggle-wrapper" title="Toggle Dark Mode">
+            <input type="checkbox" id="dark-mode-toggle">
+            <label for="dark-mode-toggle" class="switch-label">
+                <span class="sun-icon">☀️</span>
+                <span class="moon-icon">🌑</span>
+            </label>
+        </div>
+        
+        <!-- Header Refresh Button -->
+        <button id="header-refresh-button" title="Refresh Data" onclick="refreshCurrentData()">
+          <img id="refresh-icon" src="https://icons.veryicon.com/png/o/miscellaneous/two-color-webpage-small-icon/refresh-174.png" alt="Refresh Icon">
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <div id="tab-nav">
+        <button id="dashboard-tab-button" class="tab-button" onclick="showTab('dashboard')">Dashboard</button>
+        <button id="punch-tab-button" class="tab-button active" onclick="showTab('punch')">Punch Clock</button>
+        <button id="my-schedule-tab-button" class="tab-button" onclick="showTab('my-schedule')">My Schedule</button>
+        <button id="leave-request-tab-button" class="tab-button" onclick="showTab('leave-request')">My Leave</button> 
+        <button id="leave-approval-tab-button" class="tab-button" onclick="showTab('leave-approval')">Approvals</button>
+        <button id="history-report-tab-button" class="tab-button" onclick="showTab('history-report')">History Report</button>
+        <button id="schedule-tab-button" class="tab-button" onclick="showTab('schedule')">Schedule Editor</button>
+        <button id="admin-tools-tab-button" class="tab-button" onclick="showTab('admin-tools')">Admin Tools</button>
+        <button id="reporting-line-tab-button" class="tab-button" onclick="showTab('reporting-line')">Reporting Line</button>
+        <button id="coaching-tab-button" class="tab-button" onclick="showTab('coaching')">Coaching</button>
+        <button id="coaching-admin-tab-button" class="tab-button" onclick="showTab('coaching-admin')">Coaching Admin</button>
+        
+      </div>
+
+      <div class="content-container">
+
+        <!-- ================================== -->
+        <!--      TAB 1: PUNCH PANEL            -->
+        <!-- ================================== -->
+        <div id="punch-panel" class="tab-panel">
+          <div id="agent-info">Loading user info...</div> 
+
+          
+          <div id="admin-panel"><label for="agent-select">Punch For:</label><select id="agent-select"></select></div>
+          <div id="buttons">
+            <div class="button-group"><button onclick="punch('Login')">Login</button></div>
+            <div class="button-group"><button onclick="punch('First Break In')">1st Break In</button><button onclick="punch('First Break Out')">1st Break Out</button></div>
+            <div class="button-group"><button onclick="punch('Lunch In')">Lunch In</button><button onclick="punch('Lunch Out')">Lunch Out</button></div>
+            <div class="button-group"><button onclick="punch('Last Break In')">Last Break In</button><button onclick="punch('Last Break Out')">Last Break Out</button></div>
+            <div class="button-group"><button onclick="punch('Logout')">Logout</button></div>
+          </div>
+          <div id="other-buttons">
+             <div class="button-group"><button onclick="punch('Coaching In')">Coaching In</button><button onclick="punch('Coaching Out')">Coaching Out</button></div>
+            <div class="button-group"><button onclick="punch('Meeting In')">Meeting In</button><button onclick="punch('Meeting Out')">Meeting Out</button></div>
+             <div class="button-group"><button onclick="punch('Personal In')">Personal In</button><button onclick="punch('Personal Out')">Personal Out</button></div>
+          </div>
+          <div id="status" class="status-message"></div>
+        </div>
+
+        <div id="my-schedule-panel" class="tab-panel">
+          <h2>My Upcoming Schedule</h2>
+          <p>Your schedule for the next 7 days.</p>
+          <div id="my-schedule-status" class="status-message"></div>
+          <div id="my-schedule-display"></div>
+        </div>
+
+        <div id="leave-request-panel" class="tab-panel">
+          <h2>My Balances</h2>
+          <div id="leave-balances">
+            <div class="balance-item"><p>Annual</p><span class="balance-days" id="balance-annual">--</span></div>
+            <div class="balance-item"><p>Sick</p><span class="balance-days" id="balance-sick">--</span></div>
+            <div class="balance-item"><p>Casual</p><span class="balance-days" id="balance-casual">--</span></div>
+          </div>
+          <form id="leave-form" class="form-container">
+            <h2>Submit Leave Request</h2>
+            <div class="form-group"><label for="leave-type">Leave Type</label><select id="leave-type"><option value="Annual">Annual</option><option value="Sick">Sick</option><option value="Casual">Casual</option></select></div>
+            <div class="form-row">
+               <div class="form-group"><label for="leave-start-date">Start Date</label><input type="date" id="leave-start-date" required></div>
+              <div class="form-group"><label for="leave-end-date">End Date</label><input type="date" id="leave-end-date"><small>Leave blank for a single-day request.</small></div>
+            </div>
+            <div class="form-group"><label for="leave-reason">Reason (Optional)</label><textarea id="leave-reason" rows="3"></textarea></div>
+            <button type="button" class="submit-btn-green" onclick="submitLeaveRequest()">Submit Request</button>
+          </form>
+          <div id="leave-status" class="status-message"></div>
+          <div class="request-list">
+            <h2>My Request History</h2>
+            <div id="my-requests-list" class="request-list"></div>
+          </div>
+        </div>
+        
+        <div id="history-report-panel" class="tab-panel">
+          <h2>Adherence History Report</h2>
+          <form id="history-report-form" class="form-container">
+            <div class="form-group" id="history-user-select-container" style="display: none;">
+              <label>Select User(s)</label>
+              <button type="button" id="custom-history-select-button" class="custom-select-button" onclick="toggleUserDropdown('history', event)">
+                Select Users (0 selected)
+              </button>
+              <div id="custom-history-select-dropdown" class="custom-select-dropdown" onclick="event.stopPropagation()">
+                </div>
+            </div>
+            <div class="form-group">
+              <label for="history-start-date">Start Date</label>
+              <input type="date" id="history-start-date" required>
+            </div>
+            <div class="form-group">
+              <label for="history-end-date">End Date</label>
+              <input type="date" id="history-end-date" required>
+            </div>
+            <button type="button" class="view-btn" onclick="loadHistoryReport()">View History</button>
+            <button type="button" class="export-btn" id="export-csv-btn" onclick="exportHistoryToCSV()">Export to CSV</button>
+          </form>
+          
+          <div id="my-history-status" class="status-message"></div>
+          <div id="history-report-display">
+             <p class="text-color-secondary">Select users and dates, then click "View History" to generate the report.</p>
+          </div>
+        </div>
+
+        <div id="schedule-panel" class="tab-panel">
+          <form id="csv-import-form" class="form-container">
+            <h2>Bulk Schedule Importer (CSV)</h2>
+            <p class="text-color-secondary">Upload a CSV file with headers: `Name`, `Date` (MM/dd/yyyy), `StartTime` (HH:mm), `EndTime` (HH:mm), `LeaveType`, `Email`</p>
+            <div class="form-group">
+              <label for="csv-file-input">Select CSV File</label>
+              <input type="file" id="csv-file-input" accept=".csv">
+            </div>
+            <button type="button" style="background-color:var(--konecta-dark)" onclick="importScheduleCSV()">Import CSV</button>
+          </form>
+          <div id="csv-import-status" class="status-message"></div>
+          
+          <hr class="section-divider">
+          
+          <form id="schedule-form" class="form-container">
+            <h2>Manual Schedule Editor</h2>
+            <div class="form-group"><label for="schedule-agent-select">User</label><select id="schedule-agent-select"></select></div>
+            <div class="form-row">
+              <div class="form-group"><label for="schedule-start-date">Start Date</label><input type="date" id="schedule-start-date" required></div>
+              <div class="form-group"><label for="schedule-end-date">End Date (Optional)</label><input type="date" id="schedule-end-date"><small>Leave blank to submit for a single day.</small></div>
+            </div>
+            <div class="form-group"><label for="schedule-leave-type">Leave Type / Status</label><select id="schedule-leave-type" onchange="toggleTimeFields()"><option value="Present">Present</option><option value="Sick">Sick</option><option value="Annual">Annual</option><option value="Casual">Casual</option><option value="Absent">Absent</option></select></div>
+            <div id="time-fields" class="form-row">
+              <div class="form-group"><label for="schedule-start-time">Shift Start Time</label><input type="time" id="schedule-start-time"></div>
+              <div class="form-group"><label for="schedule-end-time">Shift End Time</label><input type="time" id="schedule-end-time"></div>
+            </div>
+            <button type="button" class="submit-btn-green" onclick="submitSchedule()">Submit Schedule(s)</button>
+          </form>
+          <div id="schedule-status" class="status-message"></div>
+        </div>
+        
+        <div id="leave-approval-panel" class="tab-panel">
+          <h2>Pending Leave Approvals</h2>
+          <div id="approval-filter-nav">
+            <button id="filter-mine" class="filter-button active" onclick="loadPendingRequests('mine')">My Pending Requests</button>
+            <button id="filter-all" class="filter-button" onclick="loadPendingRequests('all')">All Pending Requests</button>
+          </div>
+          <div id="approval-status" class="status-message"></div>
+          <div id="pending-requests-list" class="request-list"></div>
+        </div>
+        
+        <div id="admin-tools-panel" class="tab-panel">
+          <form id="manual-punch-form" class="form-container">
+            <h2>Manual Punch Editor</h2>
+            <p class="text-color-secondary">Manually add or overwrite a punch for a user. This will bypass duplicate/sequential checks and recalculate metrics.</p>
+            <div class="form-group"><label for="manual-punch-user">User</label><select id="manual-punch-user" required></select></div>
+            <div class="form-group"><label for="manual-punch-action">Punch Action</label><select id="manual-punch-action" required><option value="">-- Select an action --</option><optgroup label="Adherence"><option value="Login">Login</option><option value="First Break In">First Break In</option><option value="First Break Out">First Break Out</option><option value="Lunch In">Lunch In</option><option value="Lunch Out">Lunch Out</option><option value="Last Break In">Last Break In</option><option value="Last Break Out">Last Break Out</option><option value="Logout">Logout</option></optgroup><optgroup label="Other Codes"><option value="Coaching In">Coaching In</option><option value="Coaching Out">Coaching Out</option><option value="Meeting In">Meeting In</option><option value="Meeting Out">Meeting Out</option><option value="Personal In">Personal In</option><option value="Personal Out">Personal Out</option></optgroup></select></div>
+            <div class="form-row"><div class="form-group"><label for="manual-punch-date">Date of Punch</label><input type="date" id="manual-punch-date" required></div><div class="form-group"><label for="manual-punch-time">Time of Punch</label><input type="time" id="manual-punch-time" required></div></div>
+            <button type="button" onclick="submitManualPunch()" style="background-color:var(--konecta-dark)">Submit Manual Punch</button>
+          </form>
+          <div id="manual-punch-status" class="status-message"></div>
+          
+          <hr class="section-divider">
+          
+          <form id="balance-adjustment-form" class="form-container">
+            <h2>Leave Balance Management</h2>
+            <p class="text-color-secondary">Manually adjust a user's leave balance. Use a positive number (e.g., 2) to add days, and a negative number (e.g., -1) to remove days.</p>
+            <div class="form-group"><label for="balance-user-select">Select User</label><select id="balance-user-select" required></select></div>
+            <div class="form-row">
+              <div class="form-group"><label for="balance-leave-type">Leave Type</label><select id="balance-leave-type"><option value="Annual">Annual</option><option value="Sick">Sick</option><option value="Casual">Casual</option></select></div>
+              <div class="form-group"><label for="balance-amount">Amount to Adjust</label><input type="number" id="balance-amount" step="0.5" placeholder="e.g., -1 or 1.5" required></div>
+            </div>
+            <div class="form-group"><label for="balance-reason">Reason for Adjustment</label><textarea id="balance-reason" rows="2" required></textarea></div>
+            <button type="button" style="background-color:var(--konecta-yellow); color:black;" onclick="submitBalanceAdjustment()">Submit Balance Adjustment</button>
+          </form>
+          <div id="balance-adjust-status" class="status-message"></div>
+
+          <hr class="section-divider">
+          
+          <form id="admin-leave-form" class="form-container">
+            <h2>Submit Leave on Behalf of User</h2>
+            <p class="text-color-secondary">Submit a leave request for a user. This will check their balance and send it to their assigned supervisor for approval.</p>
+            <div class="form-group"><label for="admin-leave-user">Select User</LabeL><select id="admin-leave-user" required></select></div>
+            <div class="form-group"><label for="admin-leave-type">Leave Type</label><select id="admin-leave-type"><option value="Annual">Annual</option><option value="Sick">Sick</option><option value="Casual">Casual</option></select></div>
+            <div class="form-row"><div class="form-group"><label for="admin-leave-start-date">Start Date</label><input type="date" id="admin-leave-start-date" required></div><div class="form-group"><label for="admin-leave-end-date">End Date</label><input type="date" id="admin-leave-end-date"><small>Leave blank for a single-day request.</small></div></div>
+            <div class="form-group"><label for="admin-leave-reason">Reason (Optional)</label><textarea id="admin-leave-reason" rows="3"></textarea></div>
+            <button type="button" class="submit-btn-green" onclick="submitAdminLeaveRequest()">Submit Request for User</button>
+          </form>
+          
+          <div id="admin-leave-status" class="status-message"></div>
+        </div>
+
+        <div id="dashboard-panel" class="tab-panel">
+          <h2 id="dashboard-title">Team Dashboard</h2>
+          <div id="dashboard-controls" class="form-container">
+            <form id="dashboard-form">
+              <div class="form-group" id="dashboard-hierarchy-container">
+                <label>Team Hierarchy (Click user to select)</label>
+                <div id="hierarchy-tree-view">
+                  <p class="text-color-secondary">Loading team structure...</p>
+                </div>
+                <small class="text-color-secondary">Selected: <strong id="selected-user-display">None</strong></small>
+              </div>
+             
+              <div class="form-group">
+                <label for="dashboard-date">Select Date</label>
+                <input type="date" id="dashboard-date" required>
+              </div>
+              
+              <div id="dashboard-filters">
+                <button type="button" class="load-btn" onclick="loadDashboard()">Load Dashboard for Selected User</button>
+                <button type="button" class="team-btn" onclick="loadMyFullHierarchy()">Load My Full Hierarchy</button>
+                <button type="button" class="save-btn" onclick="saveCurrentSelection()">Save Current Selection</button>
+              </div>
+            </form>
+          </div>
+          <div id="dashboard-status" class="status-message"></div>
+          
+          <hr class="section-divider">
+          
+          <div id="dashboard-grid">
+            <div class="dashboard-card full-width">
+              <h3>Agent Status (Real-Time)</h3>
+              <div id="status-agent-list" class="chart-container"></div>
+            </div>
+            <div class="dashboard-card full-width">
+              <h3>Adherence Details (Today)</h3>
+              <div id="adherence-detail-table" class="dashboard-list-container"></div>
+            </div>
+            <div class="dashboard-card full-width">
+              <h3>Pending Leave Requests (for selected users)</h3>
+              <div id="pending-leave-table" class="dashboard-list-container"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div id="reporting-line-panel" class="tab-panel">
+          <form id="reporting-line-form" class="form-container">
+            <h2>Update User Reporting Line</h2>
+            <p class="text-color-secondary">Select a user and assign them to a new supervisor. This action is typically only possible if you are a Superadmin, or if the user and new supervisor are both under your management.</p>
+            
+            <div class="form-group">
+              <label for="reporting-line-user">Select User to Move</label>
+              <select id="reporting-line-user" required></select>
+            </div>
+           
+            <div class="form-group">
+              <label for="reporting-line-supervisor">Assign to New Supervisor</label>
+              <select id="reporting-line-supervisor" required></select>
+            </div>
+            
+            <button type="button" onclick="submitReportingLineChange()" style="background-color:var(--konecta-dark)">Update Reporting Line</button>
+          </form>
+          <div id="reporting-line-status" class="status-message"></div>
+        </div>
+
+        <div id="coaching-panel" class="tab-panel">
+
+      <div id="coaching-form-container" class="form-container" style="display: none;">
+        <h2>Submit New Coaching</h2>
+
+        <div class="form-group">
+          <label for="coaching-template-select">Select Coaching Template</label>
+          <select id="coaching-template-select" onchange="onCoachingTemplateSelect()">
+            <option value="">-- Select a template --</option>
+          </select>
+        </div>
+
+        <div id="coaching-form-body" style="display: none;">
+          <div class="form-group">
+            <label for="coaching-agent-select">Select User</label>
+            <select id="coaching-agent-select" required></select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="coaching-session-date">Session Date</label>
+              <input type="date" id="coaching-session-date" required>
+            </div>
+            <div class="form-group">
+              <label for="coaching-week-number">Week Number</label>
+               <input type="text" id="coaching-week-number" readonly>
+            </div>
+          </div>
+
+          <h3>Coaching Form
+            <span id="coaching-overall-score" style="float: right;"></span>
+          </h3>
+          <div id="coaching-form-dynamic">
+            </div>
+
+          <hr class="section-divider">
+
+          <div class="form-group">
+            <label for="coaching-follow-up">Follow-up / Comments</label>
+            <textarea id="coaching-follow-up" rows="4"></textarea>
+           </div>
+
+          <div class="form-group">
+            <label for="coaching-follow-up-date">Follow-up Date (Optional)</label>
+            <input type="date" id="coaching-follow-up-date">
+          </div>
+
+          <button type="button" class="submit-btn-green" onclick="submitNewCoaching()">Submit Coaching</button>
+        </div>
+
+        <div id="coaching-submit-status" class="status-message"></div>
+      </div>
+
+       <div id="coaching-list-container">
+        <div class="coaching-list-header">
+          <h2>My Coaching History</h2>
+          <button type="button" class="export-btn" id="export-coaching-btn" onclick="exportCoachingHistory()">Export History</button>
+        </div>
+        <div id="coaching-list-status" class="status-message"></div>
+        <div id="coaching-list" class="request-list">
+          <p class="text-color-secondary">Your coaching history will appear here.</p>
+        </div>
+       </div>
+
+    </div>
+
+        <div id="coaching-admin-panel" class="tab-panel">
+          <h2>Coaching Template Manager</h2>
+          
+          <div class="form-container">
+            <div class="form-row">
+              <div class="form-group" style="flex: 2;">
+                <label for="template-select">Load Existing Template</label>
+                <select id="template-select" onchange="onTemplateSelectChange()">
+                  <option value="">-- Load a template to edit --</option>
+                </select>
+              </div>
+              <div class="form-group" style="flex: 1;">
+                 <label>&nbsp;</label>
+                 <button type="button" class="submit-btn-green" onclick="createNewTemplate()">Create New Template</button>
+              </div>
+            </div>
+          </div>
+        
+          <hr class="section-divider">
+        
+          <form id="template-builder-form" class="form-container" style="display: none;">
+            <h3>Template Builder</h3>
+            <input type="hidden" id="template-id-input"> <div class="form-group">
+              <label for="template-name-input">Template Name</label>
+              <input type="text" id="template-name-input" placeholder="e.g., 'Weekly Quality Score' or 'Sales Skills'">
+            </div>
+        
+            <div id="template-criteria-builder">
+              <p class="text-color-secondary">Add your first category to begin.</p>
+            </div>
+        
+            <button type="button" style="background-color:var(--konecta-blue)" onclick="addTemplateCategory()">Add Category</button>
+            <hr class="section-divider">
+            
+            <div class="form-row">
+              <button type="button" class="submit-btn-green" style="flex: 2;" onclick="saveTemplate()">Save Template</button>
+              <button type="button" class="deny-btn" style="flex: 1;" onclick="deleteTemplate()">Delete Template</button>
+            </div>
+        
+          </form>
+        
+          <div id="coaching-admin-status" class="status-message"></div>
+        
+        </div>
+
+
+    </div> </main> <!-- End .card -->
+
+    <!-- MODIFIED: Footer is now positioned by CSS/Flexbox -->
+    <footer>
+      <p>Konecta Adherence Portal - Created by Fady Bekhet</p>
+    </footer>
+
+
+    <script>
+      let selfUserName = ""; 
+      let selfRole = "agent"; 
+      let allUsersList = []; 
+      let allAdminsList = []; 
+      let lastHistoryData = null;
+      let chartsLoaded = false; 
+      let allTemplates = [];
+      
+      // NEW: Global state for the custom multiselects (History only)
+      let selectedHistoryUsers = {};
+      let historyUserList = [];
+      
+      // NEW: Global state for Dashboard Hierarchy
+      let managerHierarchy = null; // Stores the full tree structure
+      let currentDashboardSelection = { 
+        emails: [], // The list of emails to query (flattened)
+        name: "None", // Name to display on the button/title
+        isFullHierarchy: false // Whether this selection includes nested reports
+      };
+      
+      // --- NEW/MODIFIED: Dark Mode Functions (Removed direct icon manipulation) ---
+      const DARK_MODE_KEY = 'kap_dark_mode';
+      
+      // New core function called by the checkbox event listener
+      function toggleThemeState() {
+          // Read the current state of the checkbox
+          const toggleInput = document.getElementById('dark-mode-toggle');
+          // Checkbox is already toggled when this event fires
+          const newThemeIsDark = toggleInput.checked; 
+          
+          applyTheme(newThemeIsDark);
+          localStorage.setItem(DARK_MODE_KEY, newThemeIsDark ? 'enabled' : 'disabled');
+      }
+
+      function applyTheme(isDark) {
+        const body = document.body;
+        const toggleInput = document.getElementById('dark-mode-toggle');
+        
+        if (isDark) {
+          body.classList.add('dark-mode');
+          body.setAttribute('data-theme', 'dark');
+          if (toggleInput) toggleInput.checked = true; // Set checkbox state
+          
+          // Invert the refresh icon
+          document.querySelectorAll('#header-refresh-button img').forEach(img => {
+               img.style.filter = 'invert(100%)';
+          });
+          
+        } else {
+          body.classList.remove('dark-mode');
+          body.setAttribute('data-theme', 'light');
+          if (toggleInput) toggleInput.checked = false; // Set checkbox state
+
+          // Reset the refresh icon filter
+          document.querySelectorAll('#header-refresh-button img').forEach(img => {
+               img.style.filter = 'none';
+          });
+        }
+        
+        // Re-draw charts when theme changes to apply new colors
+        // Note: The original code expected Google Charts, but since they were removed
+        // we keep the redraw logic here for completeness, though it's mainly for aesthetics now.
+        if (window.lastDashboardData) {
+            drawDashboard(window.lastDashboardData);
+        }
+      }
+
+      function initializeTheme() {
+        const savedTheme = localStorage.getItem(DARK_MODE_KEY);
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        let initialTheme = prefersDark;
+
+        if (savedTheme === 'enabled') {
+            initialTheme = true;
+        } else if (savedTheme === 'disabled') {
+            initialTheme = false;
+        }
+        
+        // Use a slight delay to ensure the DOM element for the toggle is ready
+        setTimeout(() => {
+            applyTheme(initialTheme);
+            
+            const toggleInput = document.getElementById('dark-mode-toggle');
+            if (toggleInput) {
+                // Attach listener only after the DOM is fully loaded and theme is set
+                toggleInput.addEventListener('change', toggleThemeState);
+            }
+        }, 0); 
+      }
+      
+      // --- Status Message Utility ---
+      function setStatus(id, type, message) {
+        const statusDiv = document.getElementById(id);
+        
+        // Hide all statuses first (removes visible class)
+        document.querySelectorAll('.status-message').forEach(div => {
+            div.classList.remove('visible', 'success', 'error', 'processing');
+        });
+        
+        if (message) {
+            statusDiv.classList.add('visible', type);
+            statusDiv.innerText = message;
+        } else {
+            statusDiv.classList.remove('visible', 'success', 'error', 'processing');
+        }
+      }
+      
+      // === TAB SWITCHING FUNCTION ===
+      function showTab(tabName) {
+        // Hide all panels
+        document.querySelectorAll('.tab-panel').forEach(panel => {
+          panel.style.display = 'none';
+        });
+
+        // Deactivate all tab buttons
+        document.querySelectorAll('.tab-button').forEach(button => {
+          button.classList.remove('active');
+        });
+        
+        // Clear all status messages
+        document.querySelectorAll('.status-message').forEach(div => {
+            div.classList.remove('visible', 'success', 'error', 'processing');
+        });
+
+        // Show the correct panel and activate the correct button
+        document.getElementById(tabName + '-panel').style.display = 'block';
+        document.getElementById(tabName + '-tab-button').classList.add('active');
+        
+        // Refresh data when certain tabs are clicked
+        if (tabName === 'leave-approval') {
+          const currentFilter = document.getElementById('filter-mine').classList.contains('active') ? 'mine' : 'all';
+          loadPendingRequests(currentFilter);
+        } else if (tabName === 'leave-request') {
+          loadMyRequests();
+          google.script.run.withSuccessHandler(user => {
+            if(user && user.myBalances) populateMyBalances(user.myBalances);
+          }).getUserInfo();
+        } else if (tabName === 'my-schedule') {
+          loadMySchedule();
+        } else if (tabName === 'dashboard') {
+           loadManagerHierarchy();
+           if (window.lastDashboardData) {
+               // Re-draw on tab switch to apply theme/resize changes
+               drawDashboard(window.lastDashboardData);
+           }
+        // ADD THIS NEW BLOCK
+        } else if (tabName === 'coaching') {
+  loadMyCoaching();
+
+  // NEW: Load templates into the "Submit" form dropdown
+  const templateSelect = document.getElementById('coaching-template-select');
+  if (templateSelect.options.length <= 1) { // Only load if not already loaded
+    templateSelect.innerHTML = '<option value="">-- Loading templates... --</option>';
+    google.script.run
+      .withSuccessHandler(templates => {
+        templateSelect.innerHTML = '<option value="">-- Select a template --</option>';
+        if (templates && !templates.error) {
+          allTemplates = templates; // Re-sync global state
+          templates.forEach(t => {
+            const option = document.createElement('option');
+            option.value = t.templateID;
+            option.textContent = t.templateName;
+            templateSelect.appendChild(option);
+          });
+        }
+      })
+      .webGetCoachingTemplates();
+  }
+}
+      
+      // --- Refresh User Info ---
+      function refreshCurrentData() {
+        const btn = document.getElementById('header-refresh-button');
+        btn.classList.add('loading');
+        
+        const activeTab = document.querySelector('.tab-button.active');
+        const activeTabName = activeTab ? activeTab.id.replace('-tab-button', '') : 'punch';
+        
+        google.script.run
+          .withSuccessHandler(user => {
+            populateUserInfo(user); 
+            loadTemplates();
+            // Now, reload the data for the specific tab
+            if (activeTabName === 'leave-approval') {
+              const currentFilter = document.getElementById('filter-mine').classList.contains('active') ? 'mine' : 'all';
+              loadPendingRequests(currentFilter);
+            } else if (activeTabName === 'leave-request') {
+              loadMyRequests();
+            } else if (activeTabName === 'my-schedule') {
+              loadMySchedule();
+            } else if (activeTabName === 'dashboard') {
+              loadManagerHierarchy();
+              loadDashboard();
+            } else if (activeTabName === 'history-report' && lastHistoryData) {
+              loadHistoryReport(); 
+            } else if (activeTabName === 'coaching') {
+              loadMyCoaching(); // <-- Use the new function name
+            }
+            
+            setTimeout(() => {
+              btn.classList.remove('loading');
+            }, 500); 
+          })
+          .withFailureHandler(err => {
+            btn.classList.remove('loading');
+            const infoDiv = document.getElementById('agent-info');
+            infoDiv.innerHTML = "Error refreshing data. Please try again.";
+            infoDiv.classList.add('error');
+          })
+          .getUserInfo();
+      }
+
+      // NEW: Extracted user info population into its own function
+      function populateUserInfo(user) {
+        const infoDiv = document.getElementById('agent-info');
+        
+        if (!user || !user.name && (user.role === 'agent' || !user.email.includes("konecta.com"))) {
+          infoDiv.innerHTML = "Your email is not registered. Contact your supervisor.";
+          infoDiv.className = 'error'; 
+          return;
+        }
+
+        selfUserName = user.name; 
+        selfRole = user.role; 
+        allUsersList = user.allUsers; 
+        allAdminsList = user.allAdmins; 
+        
+        // --- Apply Role-Based Body Class ---
+        document.body.setAttribute('data-role', user.role);
+
+        let displayRole = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+        
+        infoDiv.innerHTML = `<strong>User:</strong> ${user.name || 'ADMIN'} &nbsp;|&nbsp; <strong>Email:</strong> ${user.email} &nbsp;|&nbsp; <strong>Role:</strong> ${displayRole}`; 
+        infoDiv.className = '';
+        
+        document.getElementById('buttons').style.display = 'block';
+        document.getElementById('other-buttons').style.display = 'block';
+        document.getElementById('my-schedule-tab-button').style.display = 'inline-block';
+        
+        if (user.myBalances) populateMyBalances(user.myBalances);
+
+        // --- Show/Hide Tabs Based on Role ---
+        if (user.role === 'admin' || user.role === 'superadmin') {
+          document.getElementById('dashboard-tab-button').style.display = 'inline-block';
+          document.getElementById('schedule-tab-button').style.display = 'inline-block';
+          document.getElementById('leave-approval-tab-button').style.display = 'inline-block';
+          document.getElementById('admin-tools-tab-button').style.display = 'inline-block'; 
+          document.getElementById('history-report-tab-button').style.display = 'inline-block'; 
+          
+          // Show custom select container for history
+          document.getElementById('history-user-select-container').style.display = 'block'; 
+          
+          document.getElementById('reporting-line-tab-button').style.display = 'inline-block';
+          
+          populateAdminDropdown(allUsersList, selfUserName, 'agent-select', 'Punch for: Myself');
+          document.getElementById('admin-panel').style.display = 'block';
+          populateAdminDropdown(allUsersList, selfUserName, 'schedule-agent-select', 'Select a user');
+          populateAdminDropdown(allUsersList, selfUserName, 'manual-punch-user', 'Select a user'); 
+          populateAdminDropdown(allUsersList, selfUserName, 'admin-leave-user', 'Select user to submit for'); 
+          
+          populateAdminDropdown(allUsersList, selfUserName, 'balance-user-select', 'Select a user');
+          
+          // NEW: Load Hierarchy on info load for Dashboard if we are on the dashboard tab
+          if (document.getElementById('dashboard-panel').style.display === 'block') {
+             loadManagerHierarchy();
+          }
+
+          // Setup Custom History Select
+          populateAdminCustomSelect(allUsersList, selfUserName, 'history');
+          
+          populateAdminDropdown(allUsersList, selfUserName, 'reporting-line-user', 'Select a user');
+          populateSupervisorDropdown(allAdminsList, 'reporting-line-supervisor');
+          
+          // NEW: Populate coaching dropdown
+          populateAdminDropdown(allUsersList, selfUserName, 'coaching-agent-select', 'Select an agent');
+          
+          // NEW: Show coaching form for admins
+          document.getElementById('coaching-form-container').style.display = 'block';
+          document.getElementById('coaching-list-container').querySelector('h2').innerText = 'Subordinate Coaching History';
+          document.getElementById('coaching-admin-tab-button').style.display = 'inline-block';
+
+          if (user.role === 'superadmin') {
+            loadPendingRequests('all'); 
+          } else {
+            loadPendingRequests('mine'); 
+          }
+          
+        } else {
+          // User is an agent
+          document.getElementById('history-report-tab-button').style.display = 'inline-block'; 
+          
+          // Hide custom select container for agents
+          document.getElementById('history-user-select-container').style.display = 'none';
+
+          // NEW: Hide coaching form for agents
+          document.getElementById('coaching-form-container').style.display = 'none';
+          document.getElementById('coaching-list-container').querySelector('h2').innerText = 'My Coaching History';
+        }
+        
+        // Show coaching tab for everyone
+        document.getElementById('coaching-tab-button').style.display = 'inline-block'; 
+        loadMyRequests();
+      }
+
+      function loadUserInfo() {
+        // 1. Check saved theme
+        initializeTheme();
+        
+        // 2. Set timeout for failure
+        const loadTimeout = setTimeout(() => {
+          const infoDiv = document.getElementById('agent-info');
+          infoDiv.innerHTML = "The request timed out. Please refresh and re-authorize the script if asked.";
+          infoDiv.classList.add('error', 'visible');
+          infoDiv.style.textAlign = 'center';
+        }, 15000);
+
+        // 3. Run script
+        google.script.run
+          .withSuccessHandler(user => {
+            // *** NEW: Debugging log ***
+            console.log("Success handler received:", user); 
+            clearTimeout(loadTimeout); 
+
+            try {
+              // *** NEW: try...catch block ***
+              populateUserInfo(user);
+            } catch (populateError) {
+              console.error("Error inside populateUserInfo:", populateError);
+              const infoDiv = document.getElementById('agent-info');
+              infoDiv.innerHTML = "Error processing user data: " + populateError.message;
+              infoDiv.classList.add('error', 'visible');
+            }
+          })
+          .withFailureHandler(err => {
+            // *** NEW: Debugging log ***
+            console.error("Failure handler received:", err);
+            clearTimeout(loadTimeout); 
+
+            const infoDiv = document.getElementById('agent-info');
+            let errorMsg = err.message || JSON.stringify(err);
+            infoDiv.innerHTML = "Could not load user info. Error: " + errorMsg; 
+            infoDiv.classList.add('error', 'visible');
+        }).getUserInfo(); 
+      }
+      
+      // NEW: Function to handle populating custom multi-selects (History)
+      function populateAdminCustomSelect(users, selfName, type) { 
+          // Only used for history now
+          if (type !== 'history') return;
+          
+          const selectedState = selectedHistoryUsers;
+          const dropdownDiv = document.getElementById(`custom-${type}-select-dropdown`);
+          
+          if (!dropdownDiv) return;
+
+          // Set the global user list state for lookups
+          historyUserList = users;
+          
+          // Reset DOM
+          dropdownDiv.innerHTML = ''; 
+          
+          // Add the "Select All" option
+          let allOption = document.createElement('div');
+          allOption.className = 'dropdown-item';
+          allOption.innerHTML = `<input type="checkbox" id="select-all-checkbox-${type}" onclick="toggleSelectAll('${type}')"> <label for="select-all-checkbox-${type}" style="flex: 1; cursor: pointer;">Select All</label>`;
+          allOption.onclick = (e) => e.stopPropagation(); 
+          dropdownDiv.appendChild(allOption);
+          
+          // Add individual user options
+          users.forEach(user => { 
+            const item = document.createElement('div');
+            item.className = 'dropdown-item';
+            item.setAttribute('data-email', user.email);
+            item.innerHTML = `
+              <input type="checkbox" id="user-checkbox-${type}-${user.email}" data-email="${user.email}">
+              <label for="user-checkbox-${type}-${user.email}" style="flex: 1; cursor: pointer;">${user.name} (${user.email})</label>
+            `;
+            // Pass the item and email to the selection handler
+            item.onclick = (e) => selectUserItem(type, e, item, user.email, user.name);
+            dropdownDiv.appendChild(item);
+          });
+          
+          // Ensure button display reflects initial (empty) state
+          updateSelectButtonDisplay(type);
+      }
+      
+      // MODIFIED: Original function now skips custom select IDs
+      function populateAdminDropdown(users, selfName, dropdownId, selfText) { 
+        // Skip custom selects handled by populateAdminCustomSelect
+        if (dropdownId.includes('history-user-select')) {
+             return;
+        }
+
+        const select = document.getElementById(dropdownId);
+        select.innerHTML = ''; 
+        
+        // Create the 'Me' or 'Select a user' option
+        const firstOption = document.createElement('option');
+        if (dropdownId === 'agent-select') {
+          const selfUser = users.find(u => u.name === selfName);
+          firstOption.value = selfUser ? selfUser.email : '';
+          firstOption.textContent = `${selfText} (${selfName})`;
+        } else {
+          firstOption.value = ""; 
+          firstOption.textContent = selfText;
+        }
+        select.appendChild(firstOption);
+
+        // Add all other users
+        users.forEach(user => { 
+          // NEW: For coaching dropdown, only show non-admin users
+          if (dropdownId === 'coaching-agent-select' && (user.role === 'admin' || user.role === 'superadmin')) {
+             return;
+          }
+        
+          const option = document.createElement('option');
+          option.value = user.email; // Use EMAIL as value
+          option.textContent = `${user.name} (${user.email})`;
+          select.appendChild(option);
+        });
+        
+        // Select the 'Me' option for the punch clock default
+        if (dropdownId === 'agent-select') {
+          select.selectedIndex = 0;
+        }
+      }
+      
+      function populateSupervisorDropdown(admins, dropdownId = 'leave-supervisor') {
+        const select = document.getElementById(dropdownId);
+        select.innerHTML = '<option value="">-- Select a supervisor --</option>'; 
+        
+        admins.forEach(admin => {
+          const option = document.createElement('option');
+          option.value = admin.email; 
+          option.textContent = `${admin.name}`; 
+          select.appendChild(option);
+        });
+      }
+      
+      function populateMyBalances(balances) {
+        if (!balances) return;
+        document.getElementById('balance-annual').textContent = balances.annual;
+        document.getElementById('balance-sick').textContent = balances.sick;
+        document.getElementById('balance-casual').textContent = balances.casual;
+      }
+
+      function punch(action) {
+        const adminSelect = document.getElementById('agent-select');
+        let targetUserName = '';
+        
+        if (selfRole === 'admin' || selfRole === 'superadmin') {
+          const selectedEmail = adminSelect.value;
+          const user = allUsersList.find(u => u.email === selectedEmail);
+          targetUserName = user ? user.name : '';
+        } else {
+          targetUserName = selfUserName;
+        }
+        
+        if (!targetUserName) { 
+           setStatus('status', 'error', 'Please select a user to punch for.');
+           return;
+        }
+
+        setStatus('status', 'processing', `Processing "${action}" for ${targetUserName}...`);
+
+        google.script.run
+          .withSuccessHandler(msg => {
+            if (msg.startsWith('Error:')) {
+              setStatus('status', 'error', msg.replace('Error: ', ''));
+            } else {
+              setStatus('status', 'success', msg);
+            }
+          })
+          .withFailureHandler(err => {
+            setStatus('status', 'error', 'Unexpected error: ' + (err.message || JSON.stringify(err)));
+          })
+          .webPunch(action, targetUserName, null);
+      }
+      
+      function toggleTimeFields() {
+        const leaveType = document.getElementById('schedule-leave-type').value;
+        const timeFields = document.getElementById('time-fields');
+        if (leaveType === 'Present') {
+          timeFields.style.display = 'flex';
+        } else {
+          timeFields.style.display = 'none';
+        }
+      }
+      
+      function submitSchedule() {
+        try {
+          const userEmail = document.getElementById('schedule-agent-select').value;
+          const user = allUsersList.find(u => u.email === userEmail);
+          if (!user) throw new Error("Please select a user."); 
+          
+          let startDate = document.getElementById('schedule-start-date').value;
+          let endDate = document.getElementById('schedule-end-date').value;
+          const leaveType = document.getElementById('schedule-leave-type').value;
+          let startTime = document.getElementById('schedule-start-time').value;
+          let endTime = document.getElementById('schedule-end-time').value;
+          
+          if (!startDate) throw new Error("Please select a Start Date.");
+          if (!endDate) endDate = startDate;
+          if (new Date(endDate) < new Date(startDate)) throw new Error("End Date cannot be before Start Date.");
+          
+          if (leaveType === 'Present') {
+            if (!startTime || !endTime) throw new Error("Shift Start and End Time are required for 'Present' status.");
+          } else {
+            startTime = "";
+            endTime = "";
+          }
+          
+          setStatus('schedule-status', 'processing', `Submitting schedule for ${user.name}...`);
+
+          google.script.run
+            .withSuccessHandler(msg => {
+              if (msg.startsWith('Error:')) {
+                setStatus('schedule-status', 'error', msg.replace('Error: ', ''));
+              } else {
+                setStatus('schedule-status', 'success', msg);
+                document.getElementById('schedule-form').reset();
+                document.getElementById('schedule-start-date').valueAsDate = new Date();
+                toggleTimeFields();
+              }
+            })
+            .withFailureHandler(err => {
+              setStatus('schedule-status', 'error', 'Unexpected error: ' + (err.message || JSON.stringify(err)));
+            })
+            .webSubmitScheduleRange(user.email, user.name, startDate, endDate, startTime, endTime, leaveType); 
+
+        } catch (err) {
+          setStatus('schedule-status', 'error', err.message);
+        }
+      }
+      
+      // --- Helper to format date strings ---
+      function formatDate(dateStr) {
+        if (!dateStr) return 'N/A';
+        return new Date(dateStr).toLocaleDateString("en-US", { 
+          year: 'numeric', month: '2-digit', day: '2-digit' 
+        });
+      }
+      
+      // --- Helper to format time strings ---
+      function formatTime(dateStr) {
+        if (!dateStr) return '--:--';
+        // Check if dateStr is a full date string or just a time part
+        if (dateStr.includes('T') || dateStr.includes('-')) {
+             return new Date(dateStr).toLocaleTimeString("en-US", { 
+              hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false 
+            });
+        }
+        // If it's just a time string like "09:00:00", we can't reliably format it without assuming a date.
+        return dateStr;
+      }
+      
+      // --- Helper to format seconds ---
+      function formatSeconds(seconds) {
+        if (typeof seconds !== 'number' || isNaN(seconds)) return '0 sec';
+        if (seconds === 0) return '0 sec';
+        const isNegative = seconds < 0;
+        seconds = Math.abs(seconds);
+        
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+        
+        let str = isNegative ? '-' : '';
+        if (h > 0) str += `${h}h `;
+        if (m > 0) str += `${m}m `;
+        if (s > 0 || (h === 0 && m === 0)) str += `${s}s`;
+        
+        return str.trim();
+      }
+      
+      // --- NEW Helper to format seconds with color for Dashboard ---
+      function getStatusClass(status) {
+          // Converts status string to CSS class format
+          return status.replace(/[\s\/-]/g, '-');
+      }
+
+      function formatColoredSeconds(seconds, isPositive) {
+          if (typeof seconds !== 'number' || isNaN(seconds) || seconds === 0) {
+              return '0';
+          }
+          
+          // Deviation (Tardy, Early, Exceed) is negative, Overtime is positive
+          const actualSeconds = isPositive ? seconds : Math.abs(seconds);
+          
+          const h = Math.floor(actualSeconds / 3600);
+          const m = Math.floor((actualSeconds % 3600) / 60);
+          const s = Math.floor(actualSeconds % 60);
+          
+          let str = '';
+          if (h > 0) str += `${h}h `;
+          if (m > 0) str += `${m}m `;
+          if (s > 0 || (h === 0 && m === 0)) str += `${s}s`;
+          
+          // Choose color: Red for deviation, Green for positive (Overtime)
+          const color = isPositive ? '#34a853' : '#ea4335';
+          
+          return `<span style="font-weight: 600; color: ${color};">${str.trim()}</span>`;
+      }
+
+
+      function onMyRequestsFailure(error) {
+        const listDiv = document.getElementById('my-requests-list');
+        listDiv.innerHTML = `<p class="status-message error visible">Error loading requests: ${error.message || JSON.stringify(error)}</p>`;
+      }
+
+      function onPendingRequestsFailure(error) {
+        const listDiv = document.getElementById('pending-requests-list');
+        listDiv.innerHTML = `<p class="status-message error visible">Error loading requests: ${error.message || JSON.stringify(error)}</p>`;
+      }
+
+      // --- === `loadMyRequests` ---
+      function loadMyRequests() {
+        google.script.run
+          .withSuccessHandler(populateMyRequests)
+          .withFailureHandler(onMyRequestsFailure)
+          .webGetMyRequests_V2();
+      }
+      
+      // --- === `populateMyRequests` ---
+      function populateMyRequests(requests) {
+        const listDiv = document.getElementById('my-requests-list');
+        
+        if (!Array.isArray(requests)) {
+          listDiv.innerHTML = `<p class="status-message error visible">Received an invalid response from server.</p>`;
+          return;
+        }
+        
+        if (requests.length === 0) {
+          listDiv.innerHTML = '<p class="text-color-secondary">You have no leave requests on file.</p>';
+          return;
+        }
+        
+        let html = '';
+        requests.reverse().forEach((req, index) => {
+          let statusClass = '';
+          if (req.status === 'Pending') statusClass = 'status-pending';
+          if (req.status === 'Approved') statusClass = 'status-approved';
+          if (req.status === 'Denied') statusClass = 'status-denied';
+          
+          html += `
+            <div class="request-list-item">
+              <div class="item-details">
+                <h4>${req.leaveType} Request (ID: ${req.requestID.slice(-5)})</h4>
+                <p>
+                  <strong>Dates:</strong> ${formatDate(req.startDate)} to ${formatDate(req.endDate)}
+                  (${req.totalDays} ${req.totalDays > 1 ? 'days' : 'day'})
+                </p>
+                <p><strong>Submitted:</strong> ${formatDate(req.requestedDate)}</p>
+                ${req.reason ? `<p><strong>Reason:</strong> ${req.reason}</p>` : ''}
+                <p class="supervisor-info text-color-secondary"><strong>Supervisor:</strong> ${req.supervisorName || 'N/A'}</p>
+              </div>
+              <div class="item-actions">
+                <span class="status-badge ${statusClass}">${req.status}</span>
+              </div>
+            </div>
+          `;
+        });
+        listDiv.innerHTML = html;
+      }
+      
+      // --- Submit New Leave Request ---
+      function submitLeaveRequest() {
+        try {
+          const leaveType = document.getElementById('leave-type').value;
+          const startDate = document.getElementById('leave-start-date').value;
+          let endDate = document.getElementById('leave-end-date').value;
+          const reason = document.getElementById('leave-reason').value;
+          
+          if (!startDate) throw new Error("Please select a Start Date.");
+          if (!endDate) endDate = startDate; 
+          
+          if (new Date(endDate) < new Date(startDate)) {
+            throw new Error("End Date cannot be before Start Date.");
+          }
+          
+          const requestObject = {
+            leaveType: leaveType,
+            startDate: startDate,
+            endDate: endDate,
+            reason: reason
+          };
+          
+          setStatus('leave-status', 'processing', 'Submitting request...');
+          
+          google.script.run
+            .withSuccessHandler(msg => {
+              if (msg.startsWith('Error:')) { 
+                setStatus('leave-status', 'error', msg.replace('Error: ', ''));
+              } else {
+                setStatus('leave-status', 'success', msg);
+                document.getElementById('leave-form').reset();
+                document.getElementById('leave-start-date').valueAsDate = new Date();
+                
+                loadMyRequests();
+                google.script.run.withSuccessHandler(user => {
+                  populateMyBalances(user.myBalances);
+                }).getUserInfo();
+                if (selfRole === 'admin' || selfRole === 'superadmin') {
+                  const currentFilter = document.getElementById('filter-mine').classList.contains('active') ? 'mine' : 'all';
+                  loadPendingRequests(currentFilter);
+                }
+              }
+            })
+            .withFailureHandler(err => {
+              setStatus('leave-status', 'error', err.message);
+            })
+            .webSubmitLeaveRequest(requestObject, null);
+          
+        } catch (err) {
+          setStatus('leave-status', 'error', err.message);
+        }
+      }
+      
+      // --- === `loadPendingRequests` ---
+      function loadPendingRequests(filter) {
+        if (!filter) {
+          filter = (selfRole === 'superadmin') ? 'all' : 'mine';
+        }
+      
+        if (filter === 'mine') {
+          document.getElementById('filter-mine').classList.add('active');
+          document.getElementById('filter-all').classList.remove('active');
+        } else {
+          document.getElementById('filter-mine').classList.remove('active');
+          document.getElementById('filter-all').classList.add('active');
+        }
+        
+        if (selfRole === 'superadmin') {
+           document.getElementById('filter-all').style.display = 'inline-block';
+        } else {
+           document.getElementById('filter-all').style.display = 'none';
+        }
+        
+        google.script.run
+          .withSuccessHandler(populatePendingRequests)
+          .withFailureHandler(onPendingRequestsFailure)
+          .webGetPendingRequests_V2(filter);
+      }
+      
+      // --- === `populatePendingRequests` ---
+      function populatePendingRequests(requests) {
+        const listDiv = document.getElementById('pending-requests-list');
+        
+        if (!Array.isArray(requests)) {
+          listDiv.innerHTML = `<p class="status-message error visible">Received an invalid response from server.</p>`;
+          return;
+        }
+
+        if (!requests || requests.length === 0) {
+          listDiv.innerHTML = '<p class="text-color-secondary">There are no pending leave requests in this view.</p>';
+          return;
+        }
+        
+        let html = '';
+        requests.forEach((req, index) => {
+          let balanceInfo = '';
+          if (req.requesterBalance) {
+            const balanceKey = req.leaveType.toLowerCase();
+            const daysLeft = req.requesterBalance[balanceKey];
+            balanceInfo = `<p class="supervisor-info text-color-secondary"><strong>Balance Check:</strong> ${daysLeft} ${req.leaveType} days remaining.</p>`;
+          }
+        
+          html += `
+            <div class="request-list-item">
+              <div class="item-details">
+                <h4>${req.requestedByName} - ${req.leaveType} Request (ID: ${req.requestID.slice(-5)})</h4>
+                <p>
+                  <strong>Dates:</strong> ${formatDate(req.startDate)} to ${formatDate(req.endDate)}
+                  (${req.totalDays} ${req.totalDays > 1 ? 'days' : 'day'})
+                </p>
+                <p><strong>Submitted:</strong> ${formatDate(req.requestedDate)}</p>
+                <p class="supervisor-info text-color-secondary"><strong>Assigned Supervisor:</strong> ${req.supervisorName || 'N/A'}</p>
+                ${balanceInfo} 
+              </div>
+              <div class="item-actions">
+                <button class="approve-btn" onclick="approveDenyRequest('${req.requestID}', 'Approved')">Approve</button>
+                <button class="deny-btn" onclick="approveDenyRequest('${req.requestID}', 'Denied')">Deny</button>
+              </div>
+            </div>
+          `;
+        });
+        listDiv.innerHTML = html;
+      }
+      
+      // --- Admin Approve/Deny Function ---
+      function approveDenyRequest(requestID, newStatus) {
+        setStatus('approval-status', 'processing', `Processing request...`);
+        
+        google.script.run
+          .withSuccessHandler(msg => {
+            if (msg.startsWith('Error:')) { 
+              setStatus('approval-status', 'error', msg.replace('Error: ', ''));
+            } else {
+              setStatus('approval-status', 'success', msg);
+            }
+            const currentFilter = document.getElementById('filter-mine').classList.contains('active') ? 'mine' : 'all';
+            loadPendingRequests(currentFilter);
+            loadMyRequests();
+            google.script.run.withSuccessHandler(user => {
+              populateMyBalances(user.myBalances);
+            }).getUserInfo();
+          })
+          .withFailureHandler(err => {
+            setStatus('approval-status', 'error', err.message);
+          })
+          .webApproveDenyRequest(requestID, newStatus);
+      }
+      
+      // --- Load My Schedule ---
+      function loadMySchedule() {
+        setStatus('my-schedule-status', 'processing', 'Loading your schedule...');
+        document.getElementById('my-schedule-display').innerHTML = '';
+
+        google.script.run
+          .withSuccessHandler(populateMySchedule)
+          .withFailureHandler(err => {
+            setStatus('my-schedule-status', 'error', err.message);
+          })
+          .webGetMySchedule();
+      }
+
+      // --- Populate My Schedule ---
+      function populateMySchedule(scheduleData) {
+        const displayDiv = document.getElementById('my-schedule-display');
+        
+        if (scheduleData.error) {
+          setStatus('my-schedule-status', 'error', scheduleData.error);
+          return;
+        }
+        
+        if (scheduleData.length === 0) {
+          setStatus('my-schedule-status', 'success', 'No schedule found for the next 7 days.');
+          return;
+        }
+
+        setStatus('my-schedule-status', 'success', '');
+
+        let html = `
+          <table class="schedule-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Day</th>
+                <th>Status</th>
+                <th>Shift Start</th>
+                <th>Shift End</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        const today = new Date();
+        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const todayStr = today.toLocaleDateString('en-US', { timeZone: timeZone });
+
+
+        scheduleData.forEach(day => {
+          const scheduleDate = new Date(day.date);
+          const scheduleDateStr = scheduleDate.toLocaleDateString('en-US', { timeZone: timeZone });
+          
+          const dayStr = scheduleDate.toLocaleDateString('en-US', { weekday: 'long', timeZone: timeZone });
+          const dateStr = formatDate(day.date);
+          
+          let trClass = '';
+          if (scheduleDateStr === todayStr) {
+            trClass = 'day-today';
+          }
+
+          let statusClass = '';
+          if (day.leaveType !== 'Present') {
+            statusClass = 'status-leave';
+          }
+
+          html += `
+            <tr class="${trClass}">
+              <td>${dateStr}</td>
+              <td>${dayStr}</td>
+              <td class="${statusClass}">${day.leaveType}</td>
+              <td>${day.startTime || '--:--'}</td>
+              <td>${day.endTime || '--:--'}</td>
+            </tr>
+          `;
+        });
+
+        html += '</tbody></table>';
+        displayDiv.innerHTML = html;
+      }
+      
+      // --- Load History Report ---
+      function loadHistoryReport() {
+        const startDate = document.getElementById('history-start-date').value;
+        const endDate = document.getElementById('history-end-date').value;
+        
+        let targetUserNames = [];
+        
+        if (selfRole === 'admin' || selfRole === 'superadmin') {
+          // MODIFIED: Use the new custom select function
+          const selectedEmails = getSelectedUsers('history'); 
+          const count = Object.keys(selectedHistoryUsers).length;
+          
+          if (selectedEmails.length === 1 && selectedEmails[0] === 'ALL_USERS') {
+            // If "ALL_USERS" is returned, default to all names from the list
+            targetUserNames = allUsersList.map(u => u.name);
+          } else if (count === 0 && selectedEmails[0] !== 'ALL_USERS') {
+            setStatus('my-history-status', 'error', 'Please select at least one user to view.');
+            return;
+          } else {
+            // Map selected emails to user names
+            targetUserNames = selectedEmails.map(email => {
+              const user = allUsersList.find(u => u.email === email);
+              return user ? user.name : null;
+            }).filter(name => name); // Filter out any nulls
+          }
+          
+        } else {
+          // Agent mode: always query for self
+          targetUserNames.push(selfUserName);
+        }
+        
+        if (!startDate || !endDate) {
+          setStatus('my-history-status', 'error', 'Please select a Start and End date to view.');
+          return;
+        }
+        if (new Date(endDate) < new Date(startDate)) {
+          setStatus('my-history-status', 'error', 'End Date cannot be before Start Date.');
+          return;
+        }
+        
+        setStatus('my-history-status', 'processing', `Loading history for ${targetUserNames.length} user(s)...`);
+        document.getElementById('history-report-display').innerHTML = '';
+        lastHistoryData = null;
+        document.getElementById('export-csv-btn').style.display = 'none';
+        
+        google.script.run
+          .withSuccessHandler(data => {
+            if (data.error) {
+              setStatus('my-history-status', 'error', data.error);
+              return;
+            }
+            
+            setStatus('my-history-status', 'success', `Displaying ${data.length} record(s).`);
+            populateHistoryReport(data);
+            lastHistoryData = data;
+            document.getElementById('export-csv-btn').style.display = 'inline-block';
+          })
+          .withFailureHandler(err => {
+            setStatus('my-history-status', 'error', err.message);
+          })
+          .webGetAdherenceRange(targetUserNames, startDate, endDate);
+      }
+      
+      // --- Populate History Report Table ---
+      function populateHistoryReport(data) {
+        const displayDiv = document.getElementById('history-report-display');
+        
+        if (!data || data.length === 0) {
+          displayDiv.innerHTML = '<p class="text-color-secondary">No adherence records found for the selected criteria.</p>';
+          return;
+        }
+
+        const formatExceed = (value, isPositive) => {
+          if (!value || value === 'No' || value === 0) return '0';
+          const seconds = parseInt(value, 10);
+          if (seconds > 0) {
+              const color = isPositive ? '#34a853' : '#ea4335';
+              return `<span style="font-weight: 600; color: ${color};">${formatSeconds(seconds)}</span>`;
+          }
+          return '0';
+        };
+
+        let html = `
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Login</th>
+                <th>Logout</th>
+                <th>Tardy</th>
+                <th>Early Leave</th>
+                <th>Overtime</th>
+                <th>Break Exceed</th>
+                <th>Lunch Exceed</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        data.forEach(row => {
+          const totalBreakExceed = (parseInt(row.firstBreakExceed, 10) || 0) + (parseInt(row.lastBreakExceed, 10) || 0);
+          
+          html += `
+            <tr>
+              <td>${row.userName}</td>
+              <td>${formatDate(row.date)}</td>
+              <td>${row.leaveType || 'N/A'}</td>
+              <td>${formatTime(row.login)}</td>
+              <td>${formatTime(row.logout)}</td>
+              <td>${formatExceed(row.tardy, false)}</td>
+              <td>${formatExceed(row.earlyLeave, false)}</td>
+              <td>${formatExceed(row.overtime, true)}</td>
+              <td>${formatExceed(totalBreakExceed, false)}</td>
+              <td>${formatExceed(row.lunchExceed, false)}</td>
+            </tr>
+          `;
+        });
+
+        html += '</tbody></table>';
+        displayDiv.innerHTML = html;
+      }
+      
+      // --- Export to CSV ---
+      function exportHistoryToCSV() {
+        if (!lastHistoryData || lastHistoryData.length === 0) {
+          // Using a simple notification here instead of alert().
+          setStatus('my-history-status', 'error', "No data to export. Please 'View History' first.");
+          return;
+        }
+        
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "User,Date,Status,Login,Logout,Tardy (sec),Early Leave (sec),Overtime (sec),1st Break Exceed (sec),Lunch Exceed (sec),Last Break Exceed (sec)\r\n";
+        
+        lastHistoryData.forEach(data => {
+          let row = [
+            `"${data.userName}"`,
+            `"${formatDate(data.date)}"`,
+            `"${data.leaveType || 'N/A'}"`,
+            `"${formatTime(data.login)}"`,
+            `"${formatTime(data.logout)}"`,
+            data.tardy || 0,
+            data.earlyLeave || 0,
+            data.overtime || 0,
+            data.firstBreakExceed || 0,
+            data.lunchExceed || 0,
+            data.lastBreakExceed || 0
+          ].join(",");
+          csvContent += row + "\r\n";
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `History_Report_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link); 
+        link.click();
+        document.body.removeChild(link);
+      }
+      
+      // --- Submit Manual Punch ---
+      function submitManualPunch() {
+        try {
+          const userEmail = document.getElementById('manual-punch-user').value;
+          const user = allUsersList.find(u => u.email === userEmail);
+          if (!user) throw new Error("Please select a user.");
+
+          const action = document.getElementById('manual-punch-action').value;
+          const date = document.getElementById('manual-punch-date').value;
+          const time = document.getElementById('manual-punch-time').value;
+          
+          if (!action) throw new Error("Please select a punch action.");
+          if (!date) throw new Error("Please select a date.");
+          if (!time) throw new Error("Please select a time.");
+          
+          const timestamp = new Date(date + 'T' + time).toISOString();
+          
+          setStatus('manual-punch-status', 'processing', `Processing "${action}" for ${user.name}...`);
+          
+          google.script.run
+            .withSuccessHandler(msg => {
+              if (msg.startsWith('Error:')) {
+                setStatus('manual-punch-status', 'error', msg.replace('Error: ', ''));
+              } else {
+                setStatus('manual-punch-status', 'success', msg);
+                document.getElementById('manual-punch-form').reset();
+                document.getElementById('manual-punch-date').valueAsDate = new Date();
+                document.getElementById('manual-punch-user').selectedIndex = 0;
+                document.getElementById('manual-punch-action').selectedIndex = 0;
+              }
+            })
+            .withFailureHandler(err => {
+              setStatus('manual-punch-status', 'error', err.message);
+            })
+            .webPunch(action, user.name, timestamp); 
+            
+        } catch(err) {
+          setStatus('manual-punch-status', 'error', err.message);
+        }
+      }
+      
+      // --- Submit Admin Leave Request ---
+      function submitAdminLeaveRequest() {
+        try {
+          const userEmail = document.getElementById('admin-leave-user').value;
+          const user = allUsersList.find(u => u.email === userEmail);
+          if (!user) throw new Error("Please select a user.");
+          
+          const leaveType = document.getElementById('admin-leave-type').value;
+          const startDate = document.getElementById('admin-leave-start-date').value;
+          let endDate = document.getElementById('admin-leave-end-date').value;
+          const reason = document.getElementById('admin-leave-reason').value;
+
+          if (!startDate) throw new Error("Please select a Start Date.");
+          if (!endDate) endDate = startDate; 
+          
+          if (new Date(endDate) < new Date(startDate)) {
+            throw new Error("End Date cannot be before Start Date.");
+          }
+          
+          const requestObject = {
+            leaveType: leaveType,
+            startDate: startDate,
+            endDate: endDate,
+            reason: reason
+          };
+          
+          setStatus('admin-leave-status', 'processing', `Submitting request for ${user.name}...`);
+          
+          google.script.run
+            .withSuccessHandler(msg => {
+              if (msg.startsWith('Error:')) { 
+                setStatus('admin-leave-status', 'error', msg.replace('Error: ', ''));
+              } else {
+                setStatus('admin-leave-status', 'success', msg);
+                document.getElementById('admin-leave-form').reset();
+                document.getElementById('admin-leave-start-date').valueAsDate = new Date();
+                
+                const currentFilter = document.getElementById('filter-mine').classList.contains('active') ? 'mine' : 'all';
+                loadPendingRequests(currentFilter);
+              }
+            })
+            .withFailureHandler(err => {
+              setStatus('admin-leave-status', 'error', err.message);
+            })
+            .webSubmitLeaveRequest(requestObject, user.email);
+          
+        } catch (err) {
+          setStatus('admin-leave-status', 'error', err.message);
+        }
+      }
+      
+      // --- Submit Balance Adjustment ---
+      function submitBalanceAdjustment() {
+        try {
+          const userEmail = document.getElementById('balance-user-select').value;
+          const user = allUsersList.find(u => u.email === userEmail);
+          if (!user) throw new Error("Please select a user.");
+          
+          const leaveType = document.getElementById('balance-leave-type').value;
+          const amount = parseFloat(document.getElementById('balance-amount').value);
+          const reason = document.getElementById('balance-reason').value;
+
+          if (isNaN(amount) || amount === 0) throw new Error("Please enter a valid, non-zero amount.");
+          if (!reason) throw new Error("A reason is required for all adjustments.");
+
+          setStatus('balance-adjust-status', 'processing', `Adjusting ${leaveType} balance for ${user.name}...`);
+
+          google.script.run
+            .withSuccessHandler(msg => {
+              if (msg.startsWith('Error:')) { 
+                setStatus('balance-adjust-status', 'error', msg.replace('Error: ', ''));
+              } else {
+                setStatus('balance-adjust-status', 'success', msg);
+                document.getElementById('balance-adjustment-form').reset();
+              }
+            })
+            .withFailureHandler(err => {
+              setStatus('balance-adjust-status', 'error', err.message);
+            })
+            .webAdjustLeaveBalance(user.email, leaveType, amount, reason);
+
+        } catch (err) {
+          setStatus('balance-adjust-status', 'error', err.message);
+        }
+      }
+      
+      // --- Import Schedule CSV ---
+      function importScheduleCSV() {
+        const fileInput = document.getElementById('csv-file-input');
+        const file = fileInput.files[0];
+
+        if (!file) {
+          setStatus('csv-import-status', 'error', 'Please select a CSV file to import.');
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const text = e.target.result;
+          const data = parseCSV(text);
+          
+          if (!data || data.length === 0) {
+            setStatus('csv-import-status', 'error', 'File is empty or invalid. Could not parse any rows.');
+            return;
+          }
+
+          const headers = data[0];
+          if (!headers.Name || !headers.Date || !headers.Email) {
+            setStatus('csv-import-status', 'error', 'Invalid CSV format. Must include headers: Name, Date, Email. (StartTime, EndTime, LeaveType are optional)');
+            return;
+          }
+
+          setStatus('csv-import-status', 'processing', `Importing ${data.length} schedule records...`);
+
+          google.script.run
+            .withSuccessHandler(msg => {
+              if (msg.startsWith('Error:')) { 
+                setStatus('csv-import-status', 'error', msg.replace('Error: ', ''));
+              } else {
+                setStatus('csv-import-status', 'success', msg);
+                fileInput.value = '';
+              }
+            })
+            .withFailureHandler(err => {
+              setStatus('csv-import-status', 'error', err.message);
+            })
+            .webImportScheduleCSV(data);
+        };
+        
+        reader.onerror = function(e) {
+          setStatus('csv-import-status', 'error', 'Error reading file: ' + e.message);
+        };
+
+        reader.readAsText(file);
+      }
+
+      // --- Simple CSV Parser ---
+      function parseCSV(csvText) {
+        const lines = csvText.split(/\r\n|\n/).filter(line => line.trim() !== '');
+        if (lines.length < 2) return [];
+
+        const headers = lines[0].split(',').map(h => h.trim());
+        const result = [];
+
+        for (let i = 1; i < lines.length; i++) {
+          const values = lines[i].split(',').map(v => v.trim());
+          const obj = {};
+          for (let j = 0; j < headers.length; j++) {
+            obj[headers[j]] = values[j] || '';
+          }
+          result.push(obj);
+        }
+        return result;
+      }
+
+      // --- Dashboard Functions ---
+      
+      // History Select Functions (Kept for History Report only)
+      function getSelectedUsers(type) {
+        if (type !== 'history') return [];
+        const userEmails = Object.keys(selectedHistoryUsers);
+        if (userEmails.length === 0) {
+          return ['ALL_USERS'];
+        }
+        return userEmails;
+      }
+      
+      function toggleUserDropdown(type, event) {
+          event.stopPropagation();
+          if (type !== 'history') return;
+          const dropdown = document.getElementById(`custom-${type}-select-dropdown`);
+          const button = document.getElementById(`custom-${type}-select-button`);
+          const isVisible = dropdown.style.display === 'block';
+
+          if (isVisible) {
+              dropdown.style.display = 'none';
+              button.classList.remove('active');
+          } else {
+              document.querySelectorAll('.custom-select-dropdown').forEach(d => d.style.display = 'none');
+              document.querySelectorAll('.custom-select-button').forEach(b => b.classList.remove('active'));
+              dropdown.style.display = 'block';
+              button.classList.add('active');
+              
+              const allChecked = Object.keys(selectedHistoryUsers).length === historyUserList.length && historyUserList.length > 0;
+              const selectAllCheckbox = document.getElementById(`select-all-checkbox-${type}`);
+              if (selectAllCheckbox) selectAllCheckbox.checked = allChecked;
+          }
+      }
+
+      function selectUserItem(type, event, itemElement, userEmail, userName) {
+          event.stopPropagation();
+          if (type !== 'history') return;
+          const checkbox = itemElement.querySelector(`input[data-email="${userEmail}"]`);
+          
+          if (event.target !== checkbox && event.target.tagName !== 'LABEL') {
+              checkbox.checked = !checkbox.checked;
+          }
+          
+          const finalCheckedState = checkbox.checked;
+          const selectedState = selectedHistoryUsers;
+          
+          if (finalCheckedState) {
+              selectedState[userEmail] = userName;
+              itemElement.classList.add('selected');
+          } else {
+              delete selectedState[userEmail];
+              itemElement.classList.remove('selected');
+          }
+          
+          const allChecked = Object.keys(selectedState).length === historyUserList.length && historyUserList.length > 0;
+          const selectAllCheckbox = document.getElementById(`select-all-checkbox-${type}`);
+          if (selectAllCheckbox) {
+              selectAllCheckbox.checked = allChecked;
+          }
+
+          updateSelectButtonDisplay(type);
+      }
+
+      function toggleSelectAll(type) {
+          if (type !== 'history') return;
+          const selectAllChecked = document.getElementById(`select-all-checkbox-${type}`).checked;
+          const dropdown = document.getElementById(`custom-${type}-select-dropdown`);
+          
+          Object.keys(selectedHistoryUsers).forEach(key => delete selectedHistoryUsers[key]);
+          
+          if (selectAllChecked) {
+              allUsersList.forEach(user => {
+                  selectedHistoryUsers[user.email] = user.name;
+              });
+              dropdown.querySelectorAll('.dropdown-item').forEach(item => {
+                  item.classList.add('selected');
+                  const checkbox = item.querySelector('input[type="checkbox"]');
+                  if (checkbox && checkbox.id !== `select-all-checkbox-${type}`) checkbox.checked = true; 
+              });
+          } else {
+              dropdown.querySelectorAll('.dropdown-item').forEach(item => {
+                  item.classList.remove('selected');
+                  const checkbox = item.querySelector('input[type="checkbox"]');
+                   if (checkbox && checkbox.id !== `select-all-checkbox-${type}`) checkbox.checked = false;
+              });
+          }
+          updateSelectButtonDisplay(type);
+      }
+
+      function updateSelectButtonDisplay(type) {
+          if (type !== 'history') return;
+          const button = document.getElementById(`custom-${type}-select-button`);
+          if (!button) return;
+          
+          const count = Object.keys(selectedHistoryUsers).length;
+          
+          if (count === 0) {
+              button.textContent = 'Select Users (0 selected)';
+          } else if (count === historyUserList.length && historyUserList.length > 0) {
+              button.textContent = `All Users Selected (${count})`;
+          } else {
+              button.textContent = `Selected: ${count} user(s)`;
+          }
+      }
+      
+      // Close dropdown when clicking outside
+      document.addEventListener('click', function(event) {
+          // --- History Logic ---
+          const historyDropdown = document.getElementById('custom-history-select-dropdown');
+          const historyButton = document.getElementById('custom-history-select-button');
+          if (historyDropdown && historyButton && historyDropdown.style.display === 'block') {
+              const container = document.getElementById('history-user-select-container');
+              if (container && !container.contains(event.target)) {
+                  historyDropdown.style.display = 'none';
+                  historyButton.classList.remove('active');
+              }
+          }
+      });
+
+
+      // --- NEW HIERARCHY FUNCTIONS ---
+      
+      // Recursive function to flatten hierarchy into a list of emails
+      function flattenHierarchy(node, list = []) {
+          if (!node || !node.email) return list;
+          list.push(node.email);
+          node.subordinates.forEach(sub => flattenHierarchy(sub, list));
+          return list;
+      }
+      
+      // Function to get the current user's full hierarchy
+      function loadMyFullHierarchy() {
+          const managerEmail = allUsersList.find(u => u.name === selfUserName)?.email;
+          if (!managerEmail) {
+              setStatus('dashboard-status', 'error', "Could not find your user email.");
+              return;
+          }
+          
+          setStatus('dashboard-status', 'processing', 'Loading full subordinate team list...');
+
+          // This fetches the flattened list of all direct and indirect reports
+          google.script.run
+            .withSuccessHandler(emails => {
+                if (emails.error) {
+                    setStatus('dashboard-status', 'error', emails.error);
+                    return;
+                }
+                
+                const managerName = allUsersList.find(u => u.email === managerEmail)?.name || 'Manager';
+                
+                currentDashboardSelection = {
+                    emails: emails,
+                    name: `${managerName}'s Full Hierarchy`,
+                    isFullHierarchy: true
+                };
+                
+                // Also update the selection display to reflect the full team
+                document.getElementById('selected-user-display').textContent = currentDashboardSelection.name;
+                
+                // Deselect any node in the tree
+                document.querySelectorAll('#hierarchy-tree-view .tree-node').forEach(node => {
+                    node.classList.remove('selected');
+                });
+                
+                setStatus('dashboard-status', 'success', `Set dashboard selection to: ${currentDashboardSelection.name}`);
+                loadDashboard();
+            })
+            .withFailureHandler(err => {
+                setStatus('dashboard-status', 'error', `Failed to load full hierarchy: ${err.message}`);
+            })
+            .webGetAllSubordinateEmails(managerEmail);
+      }
+      
+      // Function to load the hierarchy tree from the server
+      function loadManagerHierarchy() {
+          const treeView = document.getElementById('hierarchy-tree-view');
+          if (selfRole === 'agent') {
+              treeView.innerHTML = `<p class="text-color-secondary">Hierarchy view available only to managers.</p>`;
+              return;
+          }
+          treeView.innerHTML = `<p class="text-color-secondary">Fetching team hierarchy...</p>`;
+
+          google.script.run
+              .withSuccessHandler(hierarchyData => {
+                  if (hierarchyData.error) {
+                      treeView.innerHTML = `<p class="status-message error visible">${hierarchyData.error}</p>`;
+                      return;
+                  }
+                  managerHierarchy = hierarchyData;
+                  // Clear the tree before rendering
+                  treeView.innerHTML = '';
+                  renderHierarchyTree(hierarchyData, treeView);
+                  
+                  // Default selection: The manager's own node, loaded as a single user.
+                  currentDashboardSelection.emails = [hierarchyData.email];
+                  currentDashboardSelection.name = hierarchyData.name;
+                  currentDashboardSelection.isFullHierarchy = false;
+                  
+                  document.getElementById('selected-user-display').textContent = hierarchyData.name;
+                  
+                  // Auto-select the root node (the manager)
+                  const rootNode = document.querySelector(`#hierarchy-tree-view [data-email="${hierarchyData.email}"]`);
+                  if (rootNode) {
+                       rootNode.classList.add('selected');
+                  }
+                  
+              })
+              .withFailureHandler(err => {
+                  treeView.innerHTML = `<p class="status-message error visible">Error loading hierarchy: ${err.message}</p>`;
+              })
+              .webGetManagerHierarchy();
+      }
+      
+      // Recursive function to render the hierarchy
+      function renderHierarchyTree(node, containerElement) {
+          if (!node || !node.name) return;
+
+          const isManager = node.role !== 'agent';
+          const hasChildren = node.subordinates && node.subordinates.length > 0;
+          const isRoot = node.depth === 0;
+          
+          // Get the role circle class
+          const roleClass = node.role || 'agent';
+
+          // 1. Create the container element for this node
+          const nodeContainer = document.createElement('div');
+          
+          // 2. Create the clickable tree node element
+          const nodeDiv = document.createElement('div');
+          nodeDiv.className = `tree-node ${isManager ? 'collapsed' : ''}`;
+          nodeDiv.setAttribute('data-email', node.email);
+          nodeDiv.setAttribute('data-role', node.role);
+          nodeDiv.setAttribute('data-has-children', hasChildren);
+          nodeDiv.onclick = (e) => handleNodeClick(e, node);
+
+          // Build the content of the node
+          nodeDiv.innerHTML = `
+              <img src="https://icons.veryicon.com/png/o/miscellaneous/cloud-services/arrow-right-13.png" class="toggle-icon" alt="Toggle">
+              <span class="tree-label">
+                  <div class="role-icon ${roleClass}"></div>
+                  ${node.name}
+                  ${isManager && !isRoot ? ` <span class="text-color-secondary">(${node.subordinates.length} reports)</span>` : ''}
+              </span>
+          `;
+          
+          nodeContainer.appendChild(nodeDiv);
+
+          // 3. Create the subordinates list container
+          if (hasChildren) {
+              const subList = document.createElement('div');
+              subList.className = 'subordinates-list';
+              subList.id = `subordinates-${node.email.replace(/[.@]/g, '-')}`;
+
+              // Recursively render children
+              node.subordinates.forEach(sub => {
+                  renderHierarchyTree(sub, subList);
+              });
+              
+              nodeContainer.appendChild(subList);
+          }
+          
+          containerElement.appendChild(nodeContainer);
+      }
+      
+      // Handles click on any node in the tree
+      function handleNodeClick(e, node) {
+          e.stopPropagation();
+          const nodeDiv = e.currentTarget;
+          const isManager = node.role !== 'agent';
+          const hasChildren = nodeDiv.getAttribute('data-has-children') === 'true';
+          
+          // 1. Handle Selection (always select the clicked user)
+          document.querySelectorAll('#hierarchy-tree-view .tree-node').forEach(n => {
+              n.classList.remove('selected');
+          });
+          nodeDiv.classList.add('selected');
+          
+          // Set selection state
+          currentDashboardSelection.emails = [node.email]; // Default to single user
+          currentDashboardSelection.name = node.name;
+          currentDashboardSelection.isFullHierarchy = isManager && hasChildren;
+          
+          document.getElementById('selected-user-display').textContent = node.name;
+          
+          // 2. Handle Collapse/Expand for managers
+          if (isManager && hasChildren) {
+              const subList = document.getElementById(`subordinates-${node.email.replace(/[.@]/g, '-')}`);
+              if (subList) {
+                  const isCollapsed = nodeDiv.classList.contains('collapsed');
+                  nodeDiv.classList.toggle('collapsed');
+                  subList.style.display = isCollapsed ? 'block' : 'none';
+              }
+          }
+      }
+      
+      // Reworked loadDashboard to use the new selection state
+      function loadDashboard() {
+        // Since Google Charts are not used for these visuals, we can remove the chartsLoaded check
+        
+        const date = document.getElementById('dashboard-date').value;
+        if (!date) {
+           setStatus('dashboard-status', 'error', 'Please select a date for the dashboard.');
+           return;
+        }
+        
+        // Final user list to send to the backend
+        let userEmailsToQuery = [];
+        let dashboardTitle = `Dashboard for ${formatDate(date)}`;
+        
+        if (currentDashboardSelection.isFullHierarchy) {
+            // Load Full Hierarchy was explicitly requested or a manager node was clicked
+            
+            // If the manager node was clicked (isFullHierarchy is true, but emails has only 1), 
+            // we must fetch the full list of reports for that single manager.
+            if (currentDashboardSelection.emails.length === 1 && currentDashboardSelection.name !== "None") {
+                 setStatus('dashboard-status', 'processing', `Loading full subordinate team for ${currentDashboardSelection.name}...`);
+                 
+                 // Synchronous call (Apps Script handles the full list generation)
+                 google.script.run
+                    .withSuccessHandler(emails => {
+                         // Update the selection state with the flattened list
+                        currentDashboardSelection.emails = emails;
+                        
+                        dashboardTitle = `Hierarchy for ${currentDashboardSelection.name} (${emails.length} users)`;
+                        document.getElementById('dashboard-title').innerText = dashboardTitle;
+                        
+                        // Proceed to fetch dashboard data with the new list
+                        fetchDashboardData(emails, date, dashboardTitle);
+                    })
+                    .withFailureHandler(err => {
+                        setStatus('dashboard-status', 'error', `Failed to load hierarchy list: ${err.message}`);
+                    })
+                    .webGetAllSubordinateEmails(currentDashboardSelection.emails[0]);
+                return;
+            } else {
+                 // Full hierarchy list was already loaded via 'Load My Full Hierarchy' button
+                 userEmailsToQuery = currentDashboardSelection.emails;
+                 dashboardTitle = currentDashboardSelection.name;
+            }
+
+        } else {
+            // Single User or Saved Selection was used
+            userEmailsToQuery = currentDashboardSelection.emails;
+            dashboardTitle = `Dashboard for ${currentDashboardSelection.name} (${userEmailsToQuery.length} users)`;
+        }
+        
+        if (userEmailsToQuery.length === 0) {
+             setStatus('dashboard-status', 'error', 'Please select a user or load a team from the hierarchy.');
+             return;
+        }
+        
+        document.getElementById('dashboard-title').innerText = dashboardTitle;
+        fetchDashboardData(userEmailsToQuery, date, dashboardTitle);
+      }
+      
+      function fetchDashboardData(userEmails, date, dashboardTitle) {
+          setStatus('dashboard-status', 'processing', `Loading data for ${userEmails.length} user(s) on ${formatDate(date)}...`);
+          
+          // Clear old data placeholders immediately to show processing
+          document.getElementById('status-agent-list').innerHTML = '<p class="text-color-secondary">Loading...</p>';
+          document.getElementById('adherence-detail-table').innerHTML = '<p class="text-color-secondary">Loading...</p>';
+          document.getElementById('pending-leave-table').innerHTML = '<p class="text-color-secondary">Loading...</p>';
+
+
+          google.script.run
+            .withSuccessHandler(data => {
+                window.lastDashboardData = data; 
+                drawDashboard(data);
+            })
+            .withFailureHandler(err => {
+              setStatus('dashboard-status', 'error', 'Server Error: ' + err.message);
+              document.getElementById('status-agent-list').innerHTML = '<p class="text-color-secondary">Error loading data.</p>'; 
+              document.getElementById('adherence-detail-table').innerHTML = '<p class="text-color-secondary">Error loading data.</p>';
+              document.getElementById('pending-leave-table').innerHTML = '<p class="text-color-secondary">Error loading data.</p>';
+            })
+            .webGetDashboardData(userEmails, date);
+      }
+      
+      // Function to save the current selection (single user or team list)
+      function saveCurrentSelection() {
+          if (currentDashboardSelection.emails.length === 0) {
+              setStatus('dashboard-status', 'error', 'No user(s) currently selected to save.');
+              return;
+          }
+          
+          setStatus('dashboard-status', 'processing', 'Saving current selection as "My Team"...');
+          
+          google.script.run
+            .withSuccessHandler(msg => {
+              setStatus('dashboard-status', 'success', msg);
+            })
+            .withFailureHandler(err => {
+              setStatus('dashboard-status', 'error', err.message);
+            })
+            .webSaveMyTeam(currentDashboardSelection.emails);
+      }
+      
+      // Function to get the current list of emails from the selection state
+      function getDashboardEmailsForSave() {
+          // This function is now deprecated in favor of using the global state in saveCurrentSelection
+          return currentDashboardSelection.emails;
+      }
+      
+      function drawDashboard(data) {
+        // Explicitly check for data existence and validity for each section
+        if (!data || data.error) {
+          setStatus('dashboard-status', 'error', data.error || 'Failed to load dashboard data.');
+          document.getElementById('status-agent-list').innerHTML = '<p class="text-color-secondary">Error loading data.</p>'; 
+          document.getElementById('pending-leave-table').innerHTML = '<p class="text-color-secondary">Error loading data.</p>';
+          document.getElementById('adherence-detail-table').innerHTML = '<p class="text-color-secondary">Error loading data.</p>';
+          return;
+        }
+        
+        setStatus('dashboard-status', 'success', 'Dashboard loaded successfully.');
+        
+        // --- 1. Draw Status Agent List ---
+        const statusAgentDiv = document.getElementById('status-agent-list');
+        let statusHtml = '';
+        
+        if (!data.statusCounts || data.statusCounts.length === 0) {
+             statusHtml = '<p class="text-color-secondary">No user status information available for this date/team.</p>';
+        } else {
+             // Filter out statuses with 0 count and format the HTML
+             const statusDistribution = data.statusCounts.map(s => ({ status: s[0], count: s[1] })).filter(s => s.count > 0);
+             
+             if (statusDistribution.length === 0) {
+                 statusHtml = '<p class="text-color-secondary">All scheduled users are accounted for (0 currently live).</p>';
+             } else {
+                  statusDistribution.forEach(dist => {
+                      const statusClass = getStatusClass(dist.status);
+                      statusHtml += `
+                          <div class="agent-status-item">
+                              <strong>${dist.status}</strong>
+                              <span class="status-tag status-${statusClass}">${dist.count} Agent(s)</span>
+                          </div>
+                      `;
+                  });
+             }
+        }
+        statusAgentDiv.innerHTML = statusHtml;
+
+
+        // --- 2. Draw Adherence Detail List ---
+        const adherenceDetailDiv = document.getElementById('adherence-detail-table');
+        let adherenceHtml = '';
+        
+        if (!data.individualAdherenceMetrics || data.individualAdherenceMetrics.length === 0) {
+            adherenceHtml = '<p class="text-color-secondary">No adherence data found for selected users today (No logins recorded).</p>';
+        } else {
+            // Filter users with zero deviation and sort by deviation (worst offenders first)
+            const filteredMetrics = data.individualAdherenceMetrics.filter(user => {
+                 const deviation = user.tardy + user.earlyLeave + user.breakExceed + user.lunchExceed;
+                 return deviation > 0 || user.overtime > 0;
+            });
+            
+            filteredMetrics.sort((a, b) => {
+                 // Sort primarily by negative deviation (Tardy, Early, Breaks)
+                 const aNegDeviation = a.tardy + a.earlyLeave + a.breakExceed + a.lunchExceed;
+                 const bNegDeviation = b.tardy + b.earlyLeave + b.breakExceed + b.lunchExceed;
+                 
+                 if (bNegDeviation !== aNegDeviation) {
+                    return bNegDeviation - aNegDeviation;
+                 }
+                 
+                 // Secondary sort by Overtime
+                 return b.overtime - a.overtime;
+            });
+            
+            if (filteredMetrics.length === 0) {
+                adherenceHtml = '<p class="text-color-secondary">All selected users have perfect adherence today. Great job!</p>';
+            } else {
+                filteredMetrics.forEach(user => {
+                    const totalBreakExceed = (parseInt(user.breakExceed, 10) || 0) + (parseInt(user.lunchExceed, 10) || 0);
+                    adherenceHtml += `
+                        <div class="dashboard-detail-item">
+                            <h4 class="detail-label" style="grid-column: 1 / -1; margin: 0; padding-bottom: 5px; border-bottom: 1px solid var(--border-color); color: var(--konecta-blue);">${user.name}</h4>
+                            
+                            <span class="detail-label">Tardy:</span>
+                            <span class="detail-value">${formatColoredSeconds(user.tardy, false)}</span>
+                            
+                            <span class="detail-label">Early Leave:</span>
+                            <span class="detail-value">${formatColoredSeconds(user.earlyLeave, false)}</span>
+                            
+                            <span class="detail-label">Overtime:</span>
+                            <span class="detail-value">${formatColoredSeconds(user.overtime, true)}</span>
+                            
+                            <span class="detail-label">Break Exceed:</span>
+                            <span class="detail-value">${formatColoredSeconds(totalBreakExceed, false)}</span>
+                            
+                        </div>
+                    `;
+                });
+            }
+        }
+        adherenceDetailDiv.innerHTML = adherenceHtml;
+
+
+        // --- 3. Draw Pending Leave List ---
+        const pendingLeaveDiv = document.getElementById('pending-leave-table');
+        let pendingLeaveHtml = '';
+        
+        if (!data.pendingRequests || data.pendingRequests.length === 0) {
+             pendingLeaveHtml = '<p class="text-color-secondary">No pending leave requests for selected users.</p>';
+        } else {
+            data.pendingRequests.forEach(req => {
+                pendingLeaveHtml += `
+                    <div class="dashboard-leave-item">
+                        <div class="item-details">
+                            <h4>${req.name} - ${req.type}</h4>
+                            <p><strong>Dates:</strong> ${formatDate(req.startDate)} (${req.days} days)</p>
+                        </div>
+                         <span class="status-badge status-pending">Pending</span>
+                    </div>
+                `;
+            });
+        }
+        pendingLeaveDiv.innerHTML = pendingLeaveHtml;
+      }
+      
+      // Function to get the current list of emails from the selection state
+      function saveMyTeam() {
+        const selectedUsers = currentDashboardSelection.emails;
+        
+        if (selectedUsers.length === 0) {
+          setStatus('dashboard-status', 'error', 'No specific users selected to save as your team.');
+          return;
+        }
+        
+        setStatus('dashboard-status', 'processing', 'Saving current selection as "My Team"...');
+        
+        google.script.run
+          .withSuccessHandler(msg => {
+            setStatus('dashboard-status', 'success', msg);
+          })
+          .withFailureHandler(err => {
+            setStatus('dashboard-status', 'error', err.message);
+          })
+          .webSaveMyTeam(selectedUsers);
+      }
+      
+      function loadMyTeam(autoLoadDashboard = false) { 
+        setStatus('dashboard-status', 'processing', 'Loading "My Team"...');
+        
+        google.script.run
+          .withSuccessHandler(teamEmails => {
+            
+            // Deselect all nodes in the tree
+            document.querySelectorAll('#hierarchy-tree-view .tree-node').forEach(node => {
+                node.classList.remove('selected');
+            });
+
+            if (teamEmails && teamEmails.length > 0) {
+                const teamNames = teamEmails.map(email => {
+                    const user = allUsersList.find(u => u.email === email);
+                    return user ? user.name : null;
+                }).filter(name => name);
+                
+                // Select the first node that is part of the saved team, just for visual feedback
+                if(teamEmails[0]) {
+                     const firstNode = document.querySelector(`#hierarchy-tree-view [data-email="${teamEmails[0]}"]`);
+                     if (firstNode) firstNode.classList.add('selected');
+                }
+                
+                currentDashboardSelection = {
+                    emails: teamEmails,
+                    name: `Saved Team (${teamEmails.length} users)`,
+                    isFullHierarchy: false
+                };
+                
+                document.getElementById('selected-user-display').textContent = currentDashboardSelection.name;
+                setStatus('dashboard-status', 'success', 'Loaded "My Team". Click "Load Dashboard" to view.');
+            } else {
+                 currentDashboardSelection = { emails: [], name: "None", isFullHierarchy: false };
+                 document.getElementById('selected-user-display').textContent = 'None';
+                 setStatus('dashboard-status', 'success', 'No "My Team" saved. Select a user/team and click "Load Dashboard".');
+            }
+            
+            if (autoLoadDashboard) {
+              loadDashboard();
+            }
+          })
+          .withFailureHandler(err => {
+            setStatus('dashboard-status', 'error', err.message);
+            if (autoLoadDashboard) {
+              loadDashboard();
+            }
+          })
+          .webGetMyTeam();
+      }
+
+      // --- Submit Reporting Line Change ---
+      function submitReportingLineChange() {
+        try {
+          const userEmail = document.getElementById('reporting-line-user').value;
+          const newSupervisorEmail = document.getElementById('reporting-line-supervisor').value;
+
+          if (!userEmail) throw new Error("Please select a user to move.");
+          if (!newSupervisorEmail) throw new Error("Please select a new supervisor.");
+          if (userEmail === newSupervisorEmail) throw new Error("A user cannot be their own supervisor.");
+
+          setStatus('reporting-line-status', 'processing', 'Processing reporting line change...');
+
+          google.script.run
+            .withSuccessHandler(msg => {
+              if (msg.startsWith('Error:')) {
+                setStatus('reporting-line-status', 'error', msg.replace('Error: ', ''));
+              } else {
+                setStatus('reporting-line-status', 'success', msg);
+                document.getElementById('reporting-line-form').reset();
+              }
+            })
+            .withFailureHandler(err => {
+              setStatus('reporting-line-status', 'error', err.message);
+            })
+            .webUpdateReportingLine(userEmail, newSupervisorEmail);
+
+        } catch (err) {
+          setStatus('reporting-line-status', 'error', err.message);
+        }
+      }
+
+      // --- NEW: Coaching Functions ---
+
+      // --- Data Definitions ---
+      const qualityCategories = [
+        { 
+          category: "Greeting & Opening",
+          criteria: [
+            "Agent greeted the customer professionally and introduced themselves appropriately",
+            "Agent confirmed the customer’s name & purpose of the call/chat"
+          ]
+        },
+        {
+          category: "Communication Skills & Understanding Needs",
+          criteria: [
+            "Agent conversed actively without interrupting",
+            "Agent asked relevant questions to understand customer needs",
+            "Agent acknowledged customer concerns appropriately",
+            "Language was clear, understandable, and free of jargon",
+            "Agent applied correct hold etiquettes",
+            "Tone was confident, professional and engaging"
+          ]
+        },
+        {
+          category: "Product Knowledge & providing solution",
+          criteria: [
+            "Agent demonstrated strong knowledge of Lenovo products/services",
+            "Agent offered the right solution based on customer's needs",
+            "Agent was able to handle objections confidently & Highlighted Lenovo's competitive advantage"
+          ]
+        },
+        {
+          category: "Tools usage and Chat/ Call Logging",
+          criteria: [
+            "Agent applied correct disposition.",
+            "Agent logged the chat with all relevant details in Dynamics 365 B2C"
+          ]
+        },
+        {
+          category: "Sales Closing & Call to Action",
+          criteria: [
+            "Agent clearly stated pricing, offers, and benefits.",
+            "Agent confirmed next steps (e.g., sending a quote, scheduling a follow-up)"
+          ]
+        },
+        {
+          category: "Process Compliance",
+          criteria: [
+            "Agent followed Lenovo's sales process & compliance guidelines. OR Agent transfered the chat to the approriate que when applicable"
+          ]
+        },
+        {
+          category: "Wrap-Up & Closing",
+          criteria: [
+            "Agent confirmed if the customer’s query was fully addressed",
+            "Agent ended the chat approprietly.",
+            "Follow-up commitment created (if applicable)"
+          ]
+        }
+      ];
+      
+      const scoreOptions = [
+        { text: "-- Select Score --", value: "null" },
+        { text: "Got It (1)", value: "1" },
+        { text: "Getting There (0.5)", value: "0.5" },
+        { text: "Missed It (0)", value: "0" }
+      ];
+
+      // *** NEW: Store last coaching data for export ***
+      let lastCoachingData = [];
+
+      /**
+       * Calculates ISO week number.
+       */
+      function getWeekNumber(d) {
+        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+        var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+        var weekNo = Math.ceil(( ( (d - yearStart) / 86400000) + 1)/7);
+        return weekNo;
+      }
+
+      /**
+       * Updates the week number input when the date changes.
+       */
+      function updateWeekNumber() {
+        const dateInput = document.getElementById('coaching-session-date');
+        const weekInput = document.getElementById('coaching-week-number');
+        if (dateInput.value) {
+          const date = new Date(dateInput.value);
+          // Adjust for local timezone offset to get correct UTC date for week calculation
+          const userTimezoneOffset = date.getTimezoneOffset() * 60000;
+          const adjustedDate = new Date(date.getTime() + userTimezoneOffset);
+          weekInput.value = 'Week ' + getWeekNumber(adjustedDate);
+        } else {
+          weekInput.value = '';
+        }
+      }
+
+      /**
+ * (REPLACED - PHASE 4)
+ * Triggers when user selects a template. Builds the dynamic form.
+ */
+function onCoachingTemplateSelect() {
+  const select = document.getElementById('coaching-template-select');
+  const formBody = document.getElementById('coaching-form-body');
+  const formDynamic = document.getElementById('coaching-form-dynamic');
+
+  if (!select.value) {
+    formBody.style.display = 'none';
+    return;
+  }
+
+  const template = allTemplates.find(t => t.templateID === select.value);
+  if (!template) {
+    formBody.style.display = 'none';
+    setStatus('coaching-submit-status', 'error', 'Could not load selected template.');
+    return;
+  }
+
+  // Build the form
+  formDynamic.innerHTML = ''; // Clear old form
+  let currentCategory = '';
+
+  template.criteria.sort((a, b) => a.itemOrder - b.itemOrder);
+
+  template.criteria.forEach(item => {
+    // Create new category header if needed
+    if (item.category !== currentCategory) {
+      currentCategory = item.category;
+      const categoryHeader = document.createElement('div');
+      categoryHeader.className = 'qa-category'; // Use existing style
+      categoryHeader.innerHTML = `<h4>${item.category}</h4>`;
+      formDynamic.appendChild(categoryHeader);
+    }
+
+    // Build the criteria item row
+    const itemContainer = document.createElement('div');
+    itemContainer.className = 'qa-criterion'; // Use existing style
+    itemContainer.innerHTML = `<p>${item.criteriaText}</p>`;
+
+    const inputsContainer = document.createElement('div');
+    inputsContainer.className = 'qa-criterion-inputs';
+
+    let mainInput = '';
+
+    // Create input based on type
+    switch (item.inputType) {
+      case 'score_0-1':
+        mainInput = `
+          <select class="dynamic-score-input" data-itemid="${item.itemID}" data-weight="${item.weight || 1}" onchange="calculateOverallScore()">
+            <option value="null">-- Select --</option>
+            <option value="1">Got It (1)</option>
+            <option value="0.5">Getting There (0.5)</option>
+            <option value="0">Missed It (0)</option>
+          </select>
+        `;
+        break;
+      case 'yes_no':
+        mainInput = `
+          <select class="dynamic-score-input" data-itemid="${item.itemID}" data-weight="1" onchange="calculateOverallScore()">
+            <option value="null">-- Select --</option>
+            <option value="1">Yes</option>
+            <option value="0">No</option>
+          </select>
+        `;
+        break;
+      case 'text_comment':
+        mainInput = `
+          <select class="dynamic-score-input" data-itemid="${item.itemID}" data-weight="0" style="display:none;">
+            <option value="0" selected></option>
+          </select>
+        `; // No score, but we need a comment box
+        break;
+      default:
+        mainInput = `<p>Error: Unknown input type</p>`;
+    }
+
+    // Add the comment box (unless it's 'text_comment', which ONLY gets a big box)
+    if (item.inputType === 'text_comment') {
+      inputsContainer.innerHTML = `
+        ${mainInput}
+        <textarea class="dynamic-comment-input" data-itemid="${item.itemID}" placeholder="Enter comments..." style="flex: 1; height: 60px;"></textarea>
+      `;
+    } else {
+      inputsContainer.innerHTML = `
+        ${mainInput}
+        <textarea class="dynamic-comment-input" data-itemid="${item.itemID}" placeholder="Enter comments..."></textarea>
+      `;
+    }
+
+    itemContainer.appendChild(inputsContainer);
+    formDynamic.appendChild(itemContainer);
+  });
+
+  // Show the form and reset score
+  formBody.style.display = 'block';
+  calculateOverallScore();
+}
+
+/**
+ * (REPLACED - PHASE 4)
+ * Calculates score from the new dynamic form.
+ */
+function calculateOverallScore() {
+  const scoreInputs = document.querySelectorAll('#coaching-form-dynamic .dynamic-score-input');
+  const scoreSpan = document.getElementById('coaching-overall-score');
+
+  let totalScore = 0;
+  let totalPossible = 0;
+
+  scoreInputs.forEach(select => {
+    const value = parseFloat(select.value);
+    const weight = parseFloat(select.dataset.weight || 1);
+
+    if (weight > 0 && value !== null && !isNaN(value)) {
+      totalScore += value;
+      totalPossible += weight; // Each item is worth its weight
+    }
+  });
+
+  if (totalPossible === 0) {
+    scoreSpan.textContent = 'N/A';
+    return 0; // Return 0%
+  } else {
+    const percentage = (totalScore / totalPossible) * 100;
+    scoreSpan.textContent = `${percentage.toFixed(2)}%`;
+    return percentage;
+  }
+}
+
+/**
+ * (REPLACED - PHASE 4)
+ * Submits the new DYNAMIC coaching session.
+ */
+function submitNewCoaching() {
+  try {
+    // Get template and user data
+    const templateID = document.getElementById('coaching-template-select').value;
+    if (!templateID) throw new Error("Please select a coaching template.");
+
+    const agentSelect = document.getElementById('coaching-agent-select');
+    const selectedEmail = agentSelect.value;
+    if (!selectedEmail) throw new Error("Please select an agent.");
+
+    const sessionDate = document.getElementById('coaching-session-date').value;
+    if (!sessionDate) throw new Error("Please select a session date.");
+
+    const weekNumber = document.getElementById('coaching-week-number').value;
+    const followUpComment = document.getElementById('coaching-follow-up').value;
+    const followUpDate = document.getElementById('coaching-follow-up-date').value;
+
+    // Calculate final score
+    const overallScore = calculateOverallScore();
+
+    // Gather all scores
+    const scores = [];
+    const scoreInputs = document.querySelectorAll('#coaching-form-dynamic .dynamic-score-input');
+
+    scoreInputs.forEach(input => {
+      const itemID = input.dataset.itemid;
+      const scoreValue = input.value === 'null' ? null : input.value;
+
+      // Find the matching comment box
+      const commentInput = document.querySelector(`.dynamic-comment-input[data-itemid="${itemID}"]`);
+      const commentText = commentInput ? commentInput.value : '';
+
+      // Only save if a score was selected OR a comment was written
+      if (scoreValue !== null || commentText) {
+         scores.push({
+          itemID: itemID,
+          scoreValue: scoreValue,
+          commentText: commentText
+        });
+      }
+    });
+
+    const sessionObject = {
+      templateID: templateID,
+      agentEmail: selectedEmail,
+      sessionDate: sessionDate,
+      weekNumber: weekNumber,
+      scores: scores,
+      followUpComment: followUpComment,
+      overallScore: overallScore,
+      followUpDate: followUpDate || null 
+    };
+
+    setStatus('coaching-submit-status', 'processing', `Saving session for ${agentSelect.options[agentSelect.selectedIndex].text}...`);
+
+    google.script.run
+      .withSuccessHandler(msg => {
+        if (msg.startsWith('Error:')) {
+          setStatus('coaching-submit-status', 'error', msg.replace('Error: ', ''));
+        } else {
+          setStatus('coaching-submit-status', 'success', msg);
+
+          // Reset form
+          document.getElementById('coaching-template-select').value = '';
+          document.getElementById('coaching-form-body').style.display = 'none';
+          document.getElementById('coaching-form-dynamic').innerHTML = '';
+          document.getElementById('coaching-agent-select').selectedIndex = 0;
+          document.getElementById('coaching-follow-up').value = '';
+          document.getElementById('coaching-follow-up-date').value = '';
+          document.getElementById('coaching-session-date').valueAsDate = new Date();
+          updateWeekNumber();
+
+          loadMyCoaching(); // Refresh the history list
+        }
+      })
+      .withFailureHandler(err => {
+        setStatus('coaching-submit-status', 'error', err.message);
+      })
+      .webSubmitCoaching(sessionObject);
+
+  } catch (err) {
+    setStatus('coaching-submit-status', 'error', err.message);
+  }
+}
+
+      /**
+       * Called when the 'Coaching' tab is clicked.
+       */
+      function loadMyCoaching() {
+        setStatus('coaching-list-status', 'processing', 'Loading coaching history...');
+        // *** NEW: Hide export button while loading ***
+        document.getElementById('export-coaching-btn').style.display = 'none';
+        lastCoachingData = [];
+        
+        google.script.run
+          .withSuccessHandler(populateMyCoaching)
+          .withFailureHandler(err => {
+            setStatus('coaching-list-status', 'error', err.message);
+          })
+          .webGetCoachingHistory(null);
+      }
+
+      /**
+       * Renders the list of past coaching sessions.
+       */
+      function populateMyCoaching(sessions) {
+        const listDiv = document.getElementById('coaching-list');
+        if (sessions.error) {
+          listDiv.innerHTML = `<p class="status-message error visible">${sessions.error}</p>`;
+          setStatus('coaching-list-status', '', '');
+          return;
+        }
+        if (!sessions || sessions.length === 0) {
+          listDiv.innerHTML = '<p class="text-color-secondary">No coaching history found.</p>';
+          setStatus('coaching-list-status', '', '');
+          return;
+        }
+        
+        // *** NEW: Store data for export and show button ***
+        lastCoachingData = sessions;
+        document.getElementById('export-coaching-btn').style.display = 'inline-block';
+        
+        let html = '';
+        // Sort by session date, newest first
+        sessions.sort((a, b) => new Date(b.sessionDate) - new Date(a.sessionDate));
+
+        sessions.forEach(session => {
+          let scoreDisplay = 'N/A';
+          if (session.overallScore) {
+             scoreDisplay = `${parseFloat(session.overallScore).toFixed(2)}%`;
+          }
+          
+          // *** NEW: Format follow-up date and status ***
+          let fuDate = session.followUpDate ? formatDate(session.followUpDate) : 'N/A';
+          let fuStatus = session.followUpStatus || '';
+          let fuHtml = '';
+          if (fuStatus === 'Pending') {
+            fuHtml = `<p><strong>Follow-up:</strong> <span class="status-badge status-pending" style="margin-top:0;">${fuDate}</span></p>`;
+          } else if (fuStatus) { // e.g., "Completed"
+            fuHtml = `<p><strong>Follow-up:</strong> ${fuDate} (${fuStatus})</p>`;
+          }
+          // ********************************************
+
+          html += `
+            <div class="request-list-item">
+              <div class="item-details">
+                <h4>${session.agentName} - ${formatDate(session.sessionDate)} (${session.weekNumber})</h4>
+                <p><strong>Coach:</strong> ${session.coachName}</p>
+                <p><strong>Overall Score:</strong> <strong style="color:var(--konecta-dark);">${scoreDisplay}</strong></p>
+                ${session.followUpComment ? `<p><strong>Comments:</strong> ${session.followUpComment}</p>` : ''}
+                ${fuHtml} <!-- *** NEW: Added follow-up HTML *** -->
+              </div>
+              <div class="item-actions">
+                 <!-- TODO: Add function to view details -->
+                 <button type="button" class="deny-btn" style="background-color: var(--text-color-secondary); opacity: 0.6; cursor: not-allowed;" disabled title="Details coming soon">View Details</button>
+              </div>
+            </div>
+          `;
+        });
+        
+        listDiv.innerHTML = html;
+        setStatus('coaching-list-status', '', ''); // Clear loading message
+      }
+      
+     /**
+       * (MODIFIED FOR DYNAMIC EXPORT - PHASE 4)
+       */
+      function exportCoachingHistory() {
+        if (!lastCoachingData || lastCoachingData.length === 0) {
+          setStatus('coaching-list-status', 'error', "No data to export.");
+          return;
+        }
+        
+        let csvContent = "data:text/csv;charset=utf-8,";
+        // New headers for detailed export
+        csvContent += "SessionID,AgentName,CoachName,SessionDate,WeekNumber,OverallScore,FollowUpComment,FollowUpDate,FollowUpStatus,Score_Category,Score_Criteria,Score_Value,Score_Comment\r\n";
+        
+        lastCoachingData.forEach(session => {
+          const followUpComment = `"${(session.followUpComment || "").replace(/"/g, '""')}"`;
+          
+          const baseRow = [
+            session.sessionID,
+            session.agentName,
+            session.coachName,
+            formatDate(session.sessionDate),
+            session.weekNumber,
+            session.overallScore || 'N/A',
+            followUpComment,
+            session.followUpDate ? formatDate(session.followUpDate) : 'N/A',
+            session.followUpStatus || 'N/A'
+          ];
+
+          if (session.scores && session.scores.length > 0) {
+            session.scores.forEach(score => {
+              // *** FIX: Use new property names ***
+              const scoreComment = `"${(score.commentText || "").replace(/"/g, '""')}"`;
+              const detailRow = [
+                  score.category,
+                  `"${(score.criteriaText || "").replace(/"/g, '""')}"`,
+                  score.scoreValue,
+                  scoreComment
+              ];
+              csvContent += baseRow.join(",") + "," + detailRow.join(",") + "\r\n";
+            });
+          } else {
+            csvContent += baseRow.join(",") + ",N/A,N/A,N/A,N/A\r\n";
+          }
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `Coaching_History_Detailed_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link); 
+        link.click();
+        document.body.removeChild(link);
+      }
+      
+      // --- END Coaching Functions ---
+      // ==========================================================
+// === NEW COACHING TEMPLATE FUNCTIONS (PHASE 3) ===
+// ==========================================================
+
+/**
+ * Called when the "Coaching Admin" tab is shown, or on page load
+ */
+function loadTemplates() {
+  setStatus('coaching-admin-status', 'processing', 'Loading templates...');
+  google.script.run
+    .withSuccessHandler(templates => {
+      if (templates.error) {
+        setStatus('coaching-admin-status', 'error', templates.error);
+        return;
+      }
+
+      allTemplates = templates; // Save to global state
+      const select = document.getElementById('template-select');
+      select.innerHTML = '<option value="">-- Load a template to edit --</option>'; // Reset
+
+      templates.forEach(t => {
+        const option = document.createElement('option');
+        option.value = t.templateID;
+        option.textContent = t.templateName;
+        select.appendChild(option);
+      });
+
+      setStatus('coaching-admin-status', '', ''); // Clear status
+    })
+    .withFailureHandler(err => {
+      setStatus('coaching-admin-status', 'error', err.message);
+    })
+    .webGetCoachingTemplates();
+}
+
+/**
+ * Clears the form and shows it to create a new template
+ */
+function createNewTemplate() {
+  document.getElementById('template-builder-form').style.display = 'block';
+  document.getElementById('template-id-input').value = '';
+  document.getElementById('template-name-input').value = '';
+  document.getElementById('template-criteria-builder').innerHTML = '<p class="text-color-secondary">Add your first category to begin.</p>';
+  document.getElementById('template-select').value = '';
+}
+
+/**
+ * Called when the <select> dropdown is changed
+ */
+function onTemplateSelectChange() {
+  const select = document.getElementById('template-select');
+  const templateID = select.value;
+  if (!templateID) {
+    document.getElementById('template-builder-form').style.display = 'none';
+    return;
+  }
+
+  const template = allTemplates.find(t => t.templateID === templateID);
+  if (template) {
+    renderTemplateForEditing(template);
+  }
+}
+
+/**
+ * Fills the builder form with the data from a loaded template
+ */
+function renderTemplateForEditing(template) {
+  document.getElementById('template-builder-form').style.display = 'block';
+  document.getElementById('template-id-input').value = template.templateID;
+  document.getElementById('template-name-input').value = template.templateName;
+
+  const builder = document.getElementById('template-criteria-builder');
+  builder.innerHTML = ''; // Clear it
+
+  if (!template.criteria || template.criteria.length === 0) {
+    builder.innerHTML = '<p class="text-color-secondary">This template is empty. Add a category to begin.</p>';
+    return;
+  }
+
+  let currentCategory = '';
+  let categoryContainer = null;
+
+  // Sort criteria by itemOrder to ensure they render correctly
+  template.criteria.sort((a, b) => a.itemOrder - b.itemOrder);
+
+  template.criteria.forEach(item => {
+    // If this is a new category, create the category container
+    if (item.category !== currentCategory) {
+      currentCategory = item.category;
+      categoryContainer = document.createElement('div');
+      categoryContainer.className = 'qa-category template-category'; // Use existing styles
+      categoryContainer.innerHTML = `
+        <div class="form-row" style="align-items: center;">
+          <div class="form-group" style="flex: 1;">
+            <label>Category Name</label>
+            <input type="text" class="template-category-name" value="${item.category}">
+          </div>
+          <button type="button" class="deny-btn" onclick="removeTemplateItem(this)" style="margin-top: 10px;">Remove Category</button>
+        </div>
+        <div class="template-criteria-list">
+          </div>
+        <button type="button" class="submit-btn-green" style="font-size: 14px; padding: 8px 12px; margin-top: 10px;" onclick="addTemplateCriteria(this)">+ Add Criteria</button>
+      `;
+      builder.appendChild(categoryContainer);
+    }
+
+    // Add the criteria row to the current category container
+    const criteriaList = categoryContainer.querySelector('.template-criteria-list');
+    const criteriaRow = document.createElement('div');
+    criteriaRow.className = 'form-row template-criteria-item';
+    criteriaRow.style.alignItems = 'flex-end';
+    criteriaRow.innerHTML = `
+      <div class="form-group" style="flex: 3;">
+        <label>Criteria Text</label>
+        <input type="text" class="template-criteria-text" value="${item.criteriaText}">
+      </div>
+      <div class="form-group" style="flex: 1;">
+        <label>Input Type</label>
+        <select class="template-criteria-type">
+          <option value="score_0-1" ${item.inputType === 'score_0-1' ? 'selected' : ''}>Score (0, 0.5, 1)</option>
+          <option value="yes_no" ${item.inputType === 'yes_no' ? 'selected' : ''}>Yes / No</option>
+          <option value="text_comment" ${item.inputType === 'text_comment' ? 'selected' : ''}>Comment Only</option>
+        </select>
+      </div>
+      <button type="button" class="deny-btn" onclick="removeTemplateItem(this)" style="margin-bottom: 10px; padding: 10px;">X</button>
+    `;
+    criteriaList.appendChild(criteriaRow);
+  });
+}
+
+
+/**
+ * Adds a new blank category container to the builder
+ */
+function addTemplateCategory() {
+  const builder = document.getElementById('template-criteria-builder');
+
+  // Clear placeholder text if it exists
+  if (builder.querySelector('p')) {
+    builder.innerHTML = '';
+  }
+
+  const categoryContainer = document.createElement('div');
+  categoryContainer.className = 'qa-category template-category'; // Use existing styles
+  categoryContainer.innerHTML = `
+    <div class="form-row" style="align-items: center;">
+      <div class="form-group" style="flex: 1;">
+        <label>Category Name</label>
+        <input type="text" class="template-category-name" placeholder="e.g., 'Opening' or 'Solution'">
+      </div>
+      <button type="button" class="deny-btn" onclick="removeTemplateItem(this)" style="margin-top: 10px;">Remove Category</button>
+    </div>
+    <div class="template-criteria-list">
+      </div>
+    <button type="button" class="submit-btn-green" style="font-size: 14px; padding: 8px 12px; margin-top: 10px;" onclick="addTemplateCriteria(this)">+ Add Criteria</button>
+  `;
+  builder.appendChild(categoryContainer);
+}
+
+/**
+ * Adds a new blank criteria row to the category
+ */
+function addTemplateCriteria(buttonElement) {
+  const criteriaList = buttonElement.closest('.template-category').querySelector('.template-criteria-list');
+
+  const criteriaRow = document.createElement('div');
+  criteriaRow.className = 'form-row template-criteria-item';
+  criteriaRow.style.alignItems = 'flex-end';
+  criteriaRow.innerHTML = `
+    <div class="form-group" style="flex: 3;">
+      <label>Criteria Text</label>
+      <input type="text" class="template-criteria-text" placeholder="e.g., 'Agent greeted customer'">
+    </div>
+    <div class="form-group" style="flex: 1;">
+      <label>Input Type</label>
+      <select class="template-criteria-type">
+        <option value="score_0-1">Score (0, 0.5, 1)</option>
+        <option value="yes_no">Yes / No</option>
+        <option value="text_comment">Comment Only</option>
+      </select>
+    </div>
+    <button type="button" class="deny-btn" onclick="removeTemplateItem(this)" style="margin-bottom: 10px; padding: 10px;">X</button>
+  `;
+  criteriaList.appendChild(criteriaRow);
+}
+
+/**
+ * Removes a Category or Criteria item
+ */
+function removeTemplateItem(buttonElement) {
+  // Find the parent item to remove (either a category or a criteria row)
+  const itemToRemove = buttonElement.closest('.template-category, .template-criteria-item');
+  if (itemToRemove) {
+    itemToRemove.remove();
+  }
+}
+
+/**
+ * Reads the entire builder form and saves the template
+ */
+function saveTemplate() {
+  try {
+    const templateID = document.getElementById('template-id-input').value;
+    const templateName = document.getElementById('template-name-input').value;
+
+    if (!templateName) {
+      throw new Error("Template Name is required.");
+    }
+
+    const templateObject = {
+      templateID: templateID || null,
+      templateName: templateName,
+      criteria: []
+    };
+
+    const categories = document.querySelectorAll('.template-category');
+    if (categories.length === 0) {
+      throw new Error("Template must have at least one category.");
+    }
+
+    categories.forEach(categoryEl => {
+      const categoryName = categoryEl.querySelector('.template-category-name').value;
+      if (!categoryName) {
+        throw new Error("All categories must have a name.");
+      }
+
+      const criteriaItems = categoryEl.querySelectorAll('.template-criteria-item');
+      if (criteriaItems.length === 0) {
+        throw new Error(`Category "${categoryName}" must have at least one criteria item.`);
+      }
+
+      criteriaItems.forEach(criteriaEl => {
+        const criteriaText = criteriaEl.querySelector('.template-criteria-text').value;
+        const inputType = criteriaEl.querySelector('.template-criteria-type').value;
+
+        if (!criteriaText) {
+          throw new Error(`Found an empty criteria text in category "${categoryName}".`);
+        }
+
+        templateObject.criteria.push({
+          category: categoryName,
+          criteriaText: criteriaText,
+          inputType: inputType,
+          weight: 1 // We can add this to the UI later if needed
+        });
+      });
+    });
+
+    // Now we have the full object, send it to the server
+    setStatus('coaching-admin-status', 'processing', 'Saving template...');
+    google.script.run
+      .withSuccessHandler(result => {
+        if (result.error) {
+          setStatus('coaching-admin-status', 'error', result.error);
+        } else {
+          setStatus('coaching-admin-status', 'success', `Template "${result.name}" saved successfully.`);
+          document.getElementById('template-builder-form').style.display = 'none';
+          loadTemplates(); // Reload the dropdown
+        }
+      })
+      .withFailureHandler(err => {
+        setStatus('coaching-admin-status', 'error', err.message);
+      })
+      .webSaveCoachingTemplate(templateObject);
+
+  } catch (err) {
+    setStatus('coaching-admin-status', 'error', err.message);
+  }
+}
+
+/**
+ * Deletes (archives) the currently loaded template
+ */
+function deleteTemplate() {
+  const templateID = document.getElementById('template-id-input').value;
+  const templateName = document.getElementById('template-name-input').value;
+
+  if (!templateID) {
+    setStatus('coaching-admin-status', 'error', 'No template loaded to delete.');
+    return;
+  }
+
+  if (!confirm(`Are you sure you want to delete the template "${templateName}"? This cannot be undone.`)) {
+    return;
+  }
+
+  setStatus('coaching-admin-status', 'processing', 'Deleting template...');
+  google.script.run
+    .withSuccessHandler(result => {
+      if (result.error) {
+        setStatus('coaching-admin-status', 'error', result.error);
+      } else {
+        setStatus('coaching-admin-status', 'success', `Template "${templateName}" deleted.`);
+        document.getElementById('template-builder-form').style.display = 'none';
+        loadTemplates(); // Reload the dropdown
+      }
+    })
+    .withFailureHandler(err => {
+      setStatus('coaching-admin-status', 'error', err.message);
+    })
+    .webDeleteCoachingTemplate(templateID);
+}    
+
+
+      // Initialize
+      document.addEventListener("DOMContentLoaded", function() {
+        loadUserInfo(); 
+        
+        document.getElementById('schedule-start-date').valueAsDate = new Date();
+        document.getElementById('leave-start-date').valueAsDate = new Date();
+        document.getElementById('history-start-date').valueAsDate = new Date(); 
+        document.getElementById('history-end-date').valueAsDate = new Date(); 
+        document.getElementById('manual-punch-date').valueAsDate = new Date(); 
+        document.getElementById('admin-leave-start-date').valueAsDate = new Date(); 
+        document.getElementById('dashboard-date').valueAsDate = new Date();
+        
+        // NEW: Coaching form init
+        document.getElementById('coaching-session-date').valueAsDate = new Date();
+        document.getElementById('coaching-session-date').addEventListener('change', updateWeekNumber);
+        
+        updateWeekNumber();
+        
+
+        toggleTimeFields();
+      });
+    </script>
+  </body>
+</html>
